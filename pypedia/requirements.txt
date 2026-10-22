@@ -19,7 +19,7 @@ torch==2.10.0                        # sentence-transformers 运行时
 
 # —— MCP 协议层（官方 SDK + 官方参考 server）——
 mcp==2.3.0                           # 官方 MCP Python SDK
-anyio==4.12.1                        # mcp 硬依赖；mcp_client 的 BlockingPortal 同步/异步桥显式使用
+anyio==4.14.2                        # mcp 硬依赖；mcp_client 的 BlockingPortal 同步/异步桥显式使用
 mcp-server-fetch==2026.10.19         # MCP fetch server（Python，正文转 markdown；要求 mcp>=2.3,<3）
 # filesystem / sequential-thinking 两个 server 走 npx（需 Node.js），无需 Python 依赖
 
