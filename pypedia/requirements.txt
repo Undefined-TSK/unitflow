@@ -55,7 +55,7 @@ apscheduler==3.11.3                  # 定时调度（agent/cron.py；SQLAlchemy
 sqlalchemy==2.1.5                    # APScheduler jobstore 后端（直接依赖显式锁定）
 
 # —— HTTP（百炼原生 REST 端点：rerank / 视觉 / 文生图 / 语音）——
-requests==2.32.5
+requests==2.33.0
 
 # —— 可靠性 / 结构化日志（成熟库替代自写实现） ——
 # 说明：二者同时是 llama-index-core 的传递依赖，但本项目的 models/dashscope.py 与
