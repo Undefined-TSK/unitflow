@@ -1,0 +1,68 @@
+# PyPedia 依赖清单 —— 全部为成熟外部轮子（铁律一：不手写已有能力）
+# 安装：pip3 install -r pypedia/requirements.txt
+# 版本锁定原则：与 2026-10 重构期实测兼容的组合（见 ARCHITECTURE.md 选型记录）
+
+# —— LLM / 向量 / 检索（LlamaIndex 生态）——
+llama-index-core==0.14.25            # 文档分块(SentenceSplitter)/混合检索(QueryFusionRetriever)
+llama-index-llms-openai==0.8.3       # OpenAI 兼容客户端 → 指向百炼
+llama-index-embeddings-dashscope==0.6.0   # 百炼 text-embedding-v3
+llama-index-retrievers-bm25==0.8.0        # BM25 关键词检索（jieba 分词，与向量 RRF 融合）
+llama-index-vector-stores-lancedb==0.6.0  # LanceDB 向量库（RAG 层）
+pandas==3.0.0                      # 该包的 base.py 直接 import DataFrame 却未在依赖中声明 pandas（未声明传递依赖，显式补齐；与本地实测版本一致）
+
+# —— 向量库 / 长期记忆 / 重排（全部零服务嵌入式：LanceDB + qdrant-local）——
+lancedb==0.40.0                      # 磁盘列存向量库（RAG，桌面友好）
+qdrant-client==1.19.1                # 记忆层向量库（mem0ai 硬依赖，本地模式无服务进程）
+mem0ai==2.2.1                        # 长期记忆 / 用户画像
+sentence-transformers==6.1.0         # 本地 bge-reranker 精排（CrossEncoder）
+torch==2.10.0                        # sentence-transformers 运行时
+
+# —— MCP 协议层（官方 SDK + 官方参考 server）——
+mcp==2.3.0                           # 官方 MCP Python SDK
+anyio==4.12.1                        # mcp 硬依赖；mcp_client 的 BlockingPortal 同步/异步桥显式使用
+mcp-server-fetch==2026.10.19         # MCP fetch server（Python，正文转 markdown；要求 mcp>=2.3,<3）
+# filesystem / sequential-thinking 两个 server 走 npx（需 Node.js），无需 Python 依赖
+
+# —— 文档解析（按格式各用其成熟库）——
+trafilatura==2.3.1                   # 网页正文抽取（F-Score 0.926 SOTA）+ FocusedCrawler
+beautifulsoup4==4.14.3               # HTML 解析兜底
+python-docx==1.2.0                   # DOCX 兜底
+mammoth==1.11.0                      # DOCX 主解析（正文更干净）
+EbookLib==0.20                       # EPUB
+pdfminer.six==20251230               # PDF 兜底
+pypdfium2==5.3.0                     # PDF 主解析（Chrome PDFium，Apache-2.0 无法务风险）
+python-pptx==1.0.2                   # PPTX
+openpyxl==3.1.5                      # XLSX
+
+# —— 中文分词 / 并发安全 ——
+jieba==0.42.1                        # 中文分词（BM25 tokenizer + TF-IDF 主题提取）
+filelock==3.20.3                     # sources.json 跨进程并发写（Windows 无 fcntl）
+
+# —— 配置 / CLI / 服务 ——
+pydantic==2.14.1
+pydantic-settings==2.16.0            # 类型化配置（.env / 环境变量）
+python-dotenv==1.2.4                 # .env 载入 os.environ（registry/capabilities 开关依赖）
+python-frontmatter==1.3.0            # SKILL.md frontmatter 解析（agent/skills.py，PyYAML 封装）
+typer==0.21.1                        # CLI 框架
+fastapi==0.128.2                     # REST API
+uvicorn==0.40.0                      # ASGI 服务
+
+# —— agent 扩展（Hermes 特性落地：脱敏 / 压缩 / hooks / 委派 / 定时任务）——
+pydantic-ai-slim==2.55.0             # agent 框架（工具循环/deferred/序列化）
+detect-secrets==1.5.0                # 敏感信息检测（agent/redact.py 脱敏闸门）
+blinker==1.9.0                       # 信号/钩子机制（agent/hooks.py）
+apscheduler==3.11.3                  # 定时调度（agent/cron.py；SQLAlchemyJobStore 落 sqlite）
+sqlalchemy==2.1.5                    # APScheduler jobstore 后端（直接依赖显式锁定）
+
+# —— HTTP（百炼原生 REST 端点：rerank / 视觉 / 文生图 / 语音）——
+requests==2.32.5
+
+# —— 可靠性 / 结构化日志（成熟库替代自写实现） ——
+# 说明：二者同时是 llama-index-core 的传递依赖，但本项目的 models/dashscope.py 与
+# logging_setup.py 直接 import，按「直接依赖必须显式声明」原则在此锁定版本。
+tenacity==9.1.3                      # 指数退避重试（替代自写 _request_with_retry 循环）
+python-json-logger==4.0.0            # JSON 日志格式化（extra 字段自动并入，替代自写 Formatter）
+
+# —— 测试（CI 与本地回归；默认套件零真实 LLM 调用，network marker 默认排除）——
+pytest==9.0.2
+httpx==0.28.1                        # fastapi TestClient 依赖

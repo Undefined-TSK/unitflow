@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PyPedia 项目说明书</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1f232c; --ink:#e6e9ef; --muted:#9aa4b2;
+    --line:#2a2f3a; --accent:#ffd43b; --accent2:#4dabf7; --green:#51cf66; --red:#ff6b6b;
+    --code-bg:#11141a;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.7;font-size:15px}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{background:var(--code-bg);color:#ffd9a0;padding:1px 6px;border-radius:4px;font-size:13px;
+    font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;
+    overflow:auto;font-size:13px;line-height:1.5}
+  pre code{background:none;padding:0;color:#d6deeb}
+  h1,h2,h3,h4{line-height:1.3;font-weight:700}
+  h2{border-left:4px solid var(--accent);padding-left:12px;margin-top:42px;font-size:22px}
+  h3{margin-top:28px;font-size:18px;color:#fff}
+  h4{margin-top:18px;font-size:15px;color:var(--accent)}
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13.5px;background:var(--panel)}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:#fff;font-weight:600}
+  tr:nth-child(even) td{background:#14171d}
+  blockquote{margin:14px 0;padding:10px 16px;background:var(--panel);border-left:4px solid var(--accent2);
+    color:var(--muted);border-radius:0 6px 6px 0}
+  .wrap{display:flex;min-height:100vh}
+  nav{position:fixed;top:0;left:0;width:280px;height:100vh;overflow:auto;background:var(--panel);
+    border-right:1px solid var(--line);padding:20px 16px}
+  nav h5{margin:18px 0 6px;color:var(--accent);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+  nav a{display:block;color:var(--muted);padding:4px 8px;border-radius:6px;font-size:13px}
+  nav a:hover{background:var(--panel2);color:var(--ink);text-decoration:none}
+  main{margin-left:280px;padding:40px 56px;max-width:980px}
+  .cover{background:linear-gradient(135deg,#1a1d24,#232a36);border:1px solid var(--line);
+    border-radius:14px;padding:40px;margin-bottom:30px}
+  .cover .tag{display:inline-block;background:#2b3340;color:var(--accent);font-size:12px;
+    padding:4px 10px;border-radius:20px;margin-bottom:14px}
+  .cover h1{margin:0 0 8px;font-size:34px}
+  .cover p{color:var(--muted);margin:6px 0}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:3px 12px;
+    margin:4px 6px 0 0;font-size:12px;color:var(--muted)}
+  .note{background:#1c2230;border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:16px 0}
+  .note b{color:var(--accent)}
+  .ok{color:var(--green);font-weight:600}
+  .bad{color:var(--red);font-weight:600}
+  .kbd{font-family:monospace;background:#2b3340;border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card h4{margin:0 0 8px;color:var(--accent2)}
+  .toc-sub{font-size:11.5px;color:#5f6b7a;margin:2px 0 0 8px}
+  @media (max-width:900px){nav{display:none}main{margin-left:0;padding:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <h5>PyPedia 项目说明书</h5>
+  <a href="#cover">封面 / 导读</a>
+  <a href="#c1">1 · 项目定位与读者</a>
+  <a href="#c2">2 · 环境与快速开始</a>
+  <a href="#c3">3 · 整体架构与技术栈</a>
+  <a href="#c4">4 · 一次提问的完整数据流</a>
+  <a href="#c5">5 · 核心模块详解</a>
+  <a href="#c6">6 · API 接口参考</a>
+  <a href="#c7">7 · CLI 命令参考</a>
+  <a href="#c8">8 · 配置项全表(.env)</a>
+  <a href="#c9">9 · 前端与渲染管线</a>
+  <a href="#c10">10 · 知识库与预装资料源</a>
+  <a href="#c11">11 · 记忆与自进化</a>
+  <a href="#c12">12 · 扩展开发指南</a>
+  <a href="#c13">13 · 安全与极端防护</a>
+  <a href="#c14">14 · 测试与 CI</a>
+  <a href="#c15">15 · 运维与故障排查</a>
+  <a href="#c16">16 · 设计决策与选型依据</a>
+  <a href="#c17">17 · 交互增强功能（F1–F7）</a>
+  <a href="#c18">18 · 未来路线</a>
+  <a href="#c19">19 · 附录 · 依赖与术语</a>
+</nav>
+<main>
+  <section id="cover" class="cover">
+    <span class="tag">项目说明书 · 2026-10 版</span>
+    <h1>PyPedia · Python 百科全书桌面助手</h1>
+    <p>一本属于你自己的 Python 百科全书：<b>Agent + RAG + 无限资料库</b>，记住你、理解你的水平，并持续自我进化。</p>
+    <p>本说明书由历轮过程文档（README / ARCHITECTURE / 主计划 / 插件规范 / 图规范 / 头脑风暴）
+       精简合并而成，关键事实已与 <code>config.py</code> / <code>app.py</code> / <code>cli.py</code> /
+       <code>requirements.txt</code> / <code>units/schema/unit.schema.json</code> 交叉核对。
+       读毕即可理解项目内外，无需再翻源码。</p>
+    <div>
+      <span class="pill">万物皆插件内核</span>
+      <span class="pill">图即引擎 · 双向编译</span>
+      <span class="pill">FastAPI 后端</span>
+      <span class="pill">LlamaIndex + LanceDB</span>
+      <span class="pill">百炼 qwen-plus</span>
+      <span class="pill">Mem0 记忆</span>
+      <span class="pill">MCP 协议层</span>
+      <span class="pill">741 自动化用例</span>
+      <span class="pill">真实 LLM 双轨验收</span>
+    </div>
+  </section>
+
+  <h2 id="c1">1 · 项目定位与读者</h2>
+  <p>PyPedia 是一个<b>个人本地优先</b>的 Python 知识助手。它把用户的资料库（官方文档、GitHub 仓库、离线文档、论坛）与对话上下文结合起来，用 RAG 检索 + 大语言模型生成，回答问题时做到：</p>
+  <div class="grid">
+    <div class="card"><h4>① 记住你（Mem0 长期记忆）</h4>抽取交互中的偏好 / 卡点 / 等级，跨会话留存；注入画像让回答贴合「你这个人」。</div>
+    <div class="card"><h4>② 理解水平（L1–L5 等级适配）</h4>零基础给比喻与逐行注释，专家给设计权衡与源码级结论，system 指令随等级变化。</div>
+    <div class="card"><h4>③ 持续进化（Reflexion + Voyager）</h4>沉淀技能库、复盘失败诊断；只进化 prompt / skill / 工具 / 语料，<b>不微调权重</b>。</div>
+    <div class="card"><h4>④ 有凭有据（级联检索 + 置信度）</h4>主源 / 补充源三级级联，答案附置信度拆解与双模型二审修订。</div>
+  </div>
+  <h3>1.1 设计哲学</h3>
+  <blockquote>能用现成轮子就不自己造。RAG、切分、检索、记忆、重试、日志、解析、CLI 全部用成熟外部库；仅保留纯产品逻辑（等级适配、级联主辅判别、长上下文规划、二审提示词、进化薄层、FastAPI、前端 UI）自写。</blockquote>
+  <table>
+    <tr><th>信条</th><th>在本项目中的落实</th></tr>
+    <tr><td><b>万物皆对象</b></td><td>manifest 是<b>类</b>的定义（<code>form=template</code> 开发侧通用 / <code>form=instance</code> 成品开箱即用），安装实例化后的运行体是<b>对象</b>，各自持有独立 profile 五维状态；<b>团队本身也是一个对象</b>（§5.14.1）</td></tr>
+    <tr><td><b>万物皆插件</b></td><td>内核即注册表、注册表即内核：23 项内置能力的唯一真值源是 Unit manifest，<code>PluginRegistry</code> 是 <code>UnitRegistry</code> 的兼容子类；市场安装与编辑器导出走同一契约（§5.13）</td></tr>
+    <tr><td><b>图就是引擎</b></td><td><code>GraphRuntime</code> 直接解释执行节点图，无独立 AgentLoop；模型调用是图中唯一的 LLM 节点，确定性步骤皆图节点，judge 出边 condition 实现分支与循环（§4、§5.13）；图有两态——画布呈现态与 node_graph 契约态可双向编译、动态同步；嵌套图（Agent 内部图 + 团队图）表达「独立却相互联系」（§5.14）</td></tr>
+    <tr><td><b>轻量单机</b></td><td>桌面单用户、零服务进程（LanceDB/qdrant 本地模式）；框架选型以「不添负担」为准——CrewAI/LangGraph/Workflows 复评均为负压缩，保持线性管道</td></tr>
+    <tr><td><b>恒等 · 无折扣</b></td><td>重构不得改变行为：规则引擎关闭即旁路恒等；单 Agent 图封装与旧架构产出一致性经真实测试①逐项比对（检索命中/首要证据/置信度/阶段产物/记忆与自进化节点）</td></tr>
+    <tr><td><b>测试逼真</b></td><td>三层验收：零真实 LLM 的 741 项单测（打桩隔离）→ 真实子进程/浏览器级 e2e → 真实 LLM 的一致性/全链路测试；测试必须能逼出真 bug（ref 三处漂移、linkdot 连线失效、画布塌缩、confidence import 错误均为测试逼出后修复并锁定回归）</td></tr>
+    <tr><td><b>降级不崩主流程</b></td><td>任何一步失败都有兜底：检索退空、摘要退化截断、MCP 降级、LLM 不可达降级 Mock、置信度评估失败给 55 分——主流程永不因单点失败中断</td></tr>
+    <tr><td><b>Fail-closed</b></td><td>规则引擎开启时未进激活集的能力不可见且不可调用；上传内容不执行、过不了三重门禁不落盘；必需插件经 pin-core 强制激活</td></tr>
+    <tr><td><b>可落地</b></td><td>交付即可复制运行：无伪代码、无占位逻辑、依赖锁版本、运行命令与预期输出齐备</td></tr>
+    <tr><td><b>极简交付</b></td><td>过程文档精简合并为唯一说明书；任务清单闭环后才进入下一阶段；不重复已验证的劳动</td></tr>
+  </table>
+  <h3>1.2 本文档面向的读者</h3>
+  <table>
+    <tr><th>读者</th><th>重点章节</th><th>读完能做什么</th></tr>
+    <tr><td>新接手开发者</td><td>3 · 4 · 5 · 8 · 14 · 16</td><td>看懂架构、数据流、模块边界、配置项、测试与历史决策</td></tr>
+    <tr><td>使用者（仅运行）</td><td>2 · 8 · 9 · 15</td><td>安装运行、切通道、改配置、排查常见问题</td></tr>
+    <tr><td>二次开发者</td><td>5 · 6 · 7 · 12 · 13</td><td>加模型 / MCP server / 知识源类型 / 端点，不改主干即可扩展</td></tr>
+  </table>
+
+  <h2 id="c2">2 · 环境要求与快速开始</h2>
+  <h3>2.1 环境要求</h3>
+  <table>
+    <tr><th>组件</th><th>要求</th><th>说明</th></tr>
+    <tr><td>Python</td><td><b>3.11+</b></td><td>代码使用 3.11 特性；3.9/3.10 未验证</td></tr>
+    <tr><td>Node.js</td><td>含 <code>npx</code></td><td>仅 MCP 的 filesystem / sequential-thinking server 需要；缺失时自动降级</td></tr>
+    <tr><td>本地 Ollama</td><td>可选</td><td>仅 <code>LLM_PROVIDER=ollama</code> 时需要，未运行自动回退百炼</td></tr>
+    <tr><td>百炼密钥</td><td>推荐</td><td>默认通道；缺密钥自动降级 mock 离线回答</td></tr>
+    <tr><td>系统</td><td>Linux / macOS / Windows</td><td>桌面单机场景；<code>filelock</code> 解决 Windows 无 fcntl</td></tr>
+  </table>
+  <h3>2.2 安装与启动</h3>
+  <pre><code>cd /workspace
+pip3 install -r pypedia/requirements.txt   # 装依赖（成熟外部轮子，版本已锁定）
+python3.11 app.py                            # 启动，自动开浏览器
+# 访问 http://127.0.0.1:8000/   （--port 可改端口）</code></pre>
+  <div class="note">首启动会自动在后台 daemon 线程导入预置权威资料源（需 <code>ENABLE_WEB_FETCH=true</code> 才真实抓取），<b>绝不阻塞启动</b>；离线时以内置 <code>corpus.json</code> 兜底。</div>
+  <h3>2.3 运行测试</h3>
+  <pre><code>python3 -m pytest                # 全量（自动排除 network marker），约 19s
+python3 -m pytest -m network     # 仅真实 API 测试（当前为空集，默认不跑）
+python3 scripts/benchmark.py     # 性能基准（索引/检索/token/全链路，--json 落盘）</code></pre>
+  <p>测试<b>零真实 LLM 调用</b>：conftest 隔离数据目录、用 MockEmbedding 替换真实嵌入、MemoryStore/MCP 打桩、清空密钥同样全绿。CI：<code>.github/workflows/ci.yml</code> 在 push/PR 跑 <code>pytest -m "not network"</code>。</p>
+  <h3>2.4 切换 LLM 通道</h3>
+  <table>
+    <tr><th>通道</th><th>配置</th><th>行为</th></tr>
+    <tr><td>百炼（默认）</td><td><code>LLM_PROVIDER=bailian</code> + 已配密钥</td><td>真实调用 qwen-plus，无需改动</td></tr>
+    <tr><td>本地 Ollama</td><td><code>LLM_PROVIDER=ollama</code>（本机先装 Ollama 并拉模型）</td><td>未接入时自动走百炼</td></tr>
+    <tr><td>离线 mock</td><td>不配 <code>BAILIAN_API_KEY</code></td><td>引擎自动降级 mock 回答，保证可用</td></tr>
+  </table>
+
+  <h2 id="c3">3 · 整体架构与技术栈</h2>
+  <p>整体是<b>「FastAPI 后端 + 原生前端 + 本地数据」</b>的桌面单机架构：后端负责编排与所有 AI 能力，前端用经典 <code>&lt;script&gt;</code> 全局共享（非 ES module）按序加载。</p>
+  <h3>3.1 技术栈全景</h3>
+  <table>
+    <tr><th>层</th><th>选型</th><th>为什么要它（调研结论）</th></tr>
+    <tr><td>LLM 接入</td><td>openai SDK → 百炼兼容端点</td><td>放弃 litellm：单机单云场景多一层代理无收益，直连最薄</td></tr>
+    <tr><td>RAG 框架</td><td>LlamaIndex（分块/检索）</td><td>自写切分+检索被 SentenceSplitter / BM25Retriever / QueryFusionRetriever 替代</td></tr>
+    <tr><td>向量库</td><td><b>LanceDB 0.40</b></td><td>放弃 chromadb（生态收缩）；磁盘列存、零服务进程、桌面友好</td></tr>
+    <tr><td>向量模型</td><td>百炼 text-embedding-v4（1024 维）</td><td>替代已耗尽免费额的 v3，维度兼容、零迁移成本；registry 驱动，环境变量 <code>BAILIAN_EMBED_V4_MODEL</code> 可切</td></tr>
+    <tr><td>关键词检索</td><td>BM25Retriever + <b>jieba</b> 分词</td><td>默认 token_pattern 把连续中文当单 token，中文检索失效——必修</td></tr>
+    <tr><td>精排三级链</td><td>qwen3-rerank → bge-reranker → 向量分</td><td>gte-rerank 已官方下线；本地重排用 FlagEmbedding（HF 镜像）</td></tr>
+    <tr><td>长期记忆</td><td><b>Mem0</b>（qdrant 本地模式）</td><td>自写规则画像全废弃；qdrant 本地模式零新增依赖</td></tr>
+    <tr><td>LLM 可靠性</td><td>tenacity 9.1.3 重试</td><td>llama-index-core 硬依赖零新增；仅重试连接错误/超时/429/5xx</td></tr>
+    <tr><td>结构化日志</td><td>python-json-logger 4.0.0</td><td>单行 JSON + extra 并入 + 滚动切分，替代手写 Formatter</td></tr>
+    <tr><td>配额 / 鉴权</td><td>AskLimiter + Bearer Token</td><td>threading 原语 + <code>compare_digest</code> 常量时间比较</td></tr>
+    <tr><td>数据备份</td><td>backup.py 白名单 zip</td><td>Zip Slip 防护 + 恢复前快照回滚</td></tr>
+    <tr><td>MCP 协议层</td><td>mcp 1.30.0</td><td>fetch server 锁 <code>mcp&lt;2,>=1.29</code>，1.x 全官方 server 可用</td></tr>
+    <tr><td>答案二审</td><td>review.py 双模型通道</td><td>A2A 协议在单机是净负担，用第二模型对照证据审阅替代</td></tr>
+    <tr><td>文档解析</td><td>pypdfium2 / mammoth / trafilatura / ebooklib / pptx / openpyxl</td><td>每格式一个成熟库，无自写解析</td></tr>
+    <tr><td>前端渲染</td><td>marked 18 + DOMPurify 3 + mermaid 11 + ECharts 6 + KaTeX 0.19 + hljs 11</td><td>全部 vendor 本地化随桌面端分发</td></tr>
+    <tr><td>Web / CLI</td><td>FastAPI + uvicorn / typer</td><td>—</td></tr>
+  </table>
+  <div class="note"><b>百炼能力登记（registry 11 项）</b>：<code>embed</code> · <code>chat</code> · <code>rerank</code> · <code>decision</code> · <code>code</code> · <code>math</code> · <code>vision</code> · <code>t2i</code> · <code>tts</code> · <code>asr</code> · <code>embed_v4</code>。当前 active：embed / chat / rerank / embed_v4；未开通项预留降级链，开通后零改代码生效。详见第 12 章。</div>
+  <h3>3.2 目录结构（心智地图）</h3>
+  <pre><code>app.py                  FastAPI 入口：28 个 API + 静态托管 + 中间件链 + 配额门
+pypedia/
+  engine.py             编排主线（9 步线性管道）
+  rag.py                LlamaIndex 混合检索（向量+BM25 RRF）+ 切分
+  retrieval/cascade.py  三级级联（main / supplement_a / supplement_b）
+  conversation.py       长上下文管理（token 估算 + 滑窗 + 滚动摘要）
+  levels.py             L1–L5 等级适配（纯产品逻辑，自写）
+  review.py             双模型答案二审
+  rerank_local.py       本地 bge-reranker 精排（四态懒加载）
+  mcp_client.py         MCP 协议层（官方 SDK + 3 个官方 server）
+  textutil.py           jieba 统一分词入口
+  models/               registry.py（能力注册表）+ dashscope.py（重试封装）
+  logging_setup.py      结构化 JSON 日志
+  memory_store.py       Mem0 长期记忆
+  memory/               会话 + 画像（session.py）
+  memory_migrate.py     chroma→qdrant 幂等迁移
+  evolution/            Reflexion（反思）+ Voyager（技能库）
+  ingest/               知识摄入包（parsers/sources/crawl/strategies/preset）
+  knowledge/            ingest 对外再导出入口
+  backup.py             数据导出/恢复
+  auth.py               Bearer Token 鉴权
+  config.py             pydantic-settings 配置
+  cli.py                typer CLI
+  capabilities/         协议层能力开关（查真实连接状态）
+  llm/                  mock 离线通道（base.py / mock.py）
+  units/                万物皆插件内核（manifest/registry/loader/graph/builtins/market/editor）
+static/
+  index.html            前端外壳（~300 行）
+  js/                   10 个模块（util→md→chat→library→profile→evolve→plugins→editor→settings→app）</code></pre>
+
+  <h2 id="c4">4 · 一次提问的完整数据流</h2>
+  <p>下方是真实执行顺序（不是理想图）。每一步都标注了「在哪、干什么、失败怎么办」。</p>
+  <pre><code>用户输入（Web / CLI）
+  │
+  ▼ [极端防护] MAX_QUERY_CHARS=4000 截断
+  ▼ [级联检索] retrieval/cascade.py
+  │     main（库文档表） / supplement_a（GitHub 表） / supplement_b（离线+论坛表）
+  │     混合：向量(DashScopeEmbedding-v3) + BM25(jieba) → RRF 融合
+  │     精排：qwen3-rerank → bge-reranker → 向量分数
+  ▼ [上下文规划] conversation.py
+  │     token 粗估 → 滑窗保留最近 4 轮 → 超预算/超 8 轮交给百炼滚动摘要
+  ▼ [分步推理] mcp_client.py（仅复杂问题触发 sequential-thinking 便笺）
+  ▼ [等级适配] levels.py 注入 L1–L5 深度指令
+  ▼ [生成] models/dashscope.chat（qwen-plus）
+  │     契约：Markdown + mermaid 图 + chart(ECharts option JSON) + $KaTeX$ + 有限 HTML
+  ▼ [置信度] evaluate_confidence（主源55+跨源30+新鲜度15，由模型评）
+  ▼ [双模型二审] review.py（无证据不硬审；revise 给 notes+修订版）
+  ▼ [记忆沉淀] Mem0 Memory.add
+  ▼ [自进化] evolution/（Reflexion 诊断 + Voyager 技能归纳）
+  ▼ 前端渲染：marked → DOMPurify → 代码块后处理
+        → renderMath（防货币误伤）→ ECharts init（剥 tooltip HTML）→ mermaid.run</code></pre>
+  <div class="note"><b>关键降级语义</b>：任何一步失败都不崩主流程——检索失败退空、摘要失败退化截断、MCP 起不来只降级该项、百炼不可达降级 mock、预设源单源失败不影响其余源。</div>
+
+  <h2 id="c5">5 · 核心模块详解</h2>
+  <p>每个模块统一按「职责 / 位置 / 输入·输出 / 关键逻辑 / 依赖轮子 / 相关配置」描述。</p>
+
+  <h3>5.1 等级适配 <code>pypedia/levels.py</code></h3>
+  <ul>
+    <li><b>位置</b>：输入之后、检索之前。<b>输入</b>：等级 1–5 + 问题。<b>输出</b>：深度指令 system prompt。</li>
+    <li><b>逻辑</b>：L1 零基础（比喻+逐行注释）→ L5 专家（设计权衡+源码级结论）。纯产品逻辑，无现成轮子，保留自写。</li>
+  </ul>
+
+  <h3>5.2 级联检索 RAG <code>pypedia/rag.py</code> + <code>retrieval/</code></h3>
+  <ul>
+    <li><b>位置</b>：核心检索。<b>输出</b>：带 main / supplement_a / supplement_b 角色标注的片段。</li>
+    <li><b>轮子</b>：LanceDBVectorStore 持久化、SentenceSplitter 统一切分、QueryFusionRetriever 混合检索、每角色独立 table。BM25 tokenizer 已换 jieba。</li>
+    <li><b>配置</b>：<code>TOP_K_PER_STAGE=3</code>、<code>FETCH_TIMEOUT=6</code>。</li>
+  </ul>
+
+  <h3>5.3 本地重排 <code>pypedia/rerank_local.py</code></h3>
+  <ul>
+    <li><b>位置</b>：检索之后、生成之前（精排三级链第二级）。</li>
+    <li><b>轮子</b>：<code>BAAI/bge-reranker-base</code>（1.1GB）懒加载、后台线程预热；<code>HF_ENDPOINT</code> 走国内镜像；<code>RERANK_LOCAL_ENABLE=false</code> 只用向量分数。</li>
+  </ul>
+
+  <h3>5.4 长上下文管理 <code>pypedia/conversation.py</code></h3>
+  <ul>
+    <li><b>位置</b>：检索之后、生成之前，与等级适配并行。</li>
+    <li><b>逻辑</b>：<code>estimate_tokens</code>（CJK 1 字=1、英文≈1.3×1.2、+4 消息开销）→ <code>ContextPlan</code>（滑窗保留最近 <code>CONTEXT_KEEP_TURNS=4</code> 轮 + 更早滚动摘要）→ 摘要超 <code>CONTEXT_TOKEN_BUDGET//3</code> 二次截断。摘要失败退化截断拼接，主流程永不阻塞。</li>
+    <li><b>配置</b>：<code>CONTEXT_TOKEN_BUDGET=6000</code>、<code>CONTEXT_KEEP_TURNS=4</code>、<code>CONTEXT_SUMMARY_TRIGGER=8</code>。</li>
+  </ul>
+
+  <h3>5.5 分步推理（MCP） <code>pypedia/mcp_client.py</code></h3>
+  <ul>
+    <li><b>位置</b>：生成之前，复杂问题（多问号/并列词/流程词启发式）触发 sequential-thinking 便笺。</li>
+    <li><b>客户端</b>：<code>stdio_client</code> 起子进程 → <code>ClientSession</code> 手动 <code>__aenter__</code> + <code>initialize()</code> 保长连接 → <code>run_forever()</code> 保活（用 run_until_complete 协程永不执行）。</li>
+    <li><b>环境</b>：显式传 PATH/HOME（MCP 安全模型，子进程不继承环境）；每 server 5s / 总 25s 优雅关闭。</li>
+    <li><b>配置</b>：<code>MCP_ENABLE</code>、<code>MCP_FS_DIR</code>、<code>MCP_FETCH_ENABLE</code>、<code>MCP_THINKING_ENABLE</code>。</li>
+  </ul>
+
+  <h3>5.6 答案二审 <code>pypedia/review.py</code></h3>
+  <ul>
+    <li><b>位置</b>：生成 + 置信度之后。独立审阅通道，temperature=0。</li>
+    <li><b>逻辑</b>：输入 <code>(query, answer, evidence)</code>，输出 <code>{verdict: pass|revise, notes, revised}</code>；revise 无修订版降级 pass；无证据不硬审。审阅模型可用 <code>REVIEW_MODEL</code> 覆盖（如 qwen-max）。</li>
+    <li><b>配置</b>：<code>REVIEW_ENABLE</code>、<code>REVIEW_MODEL</code>。</li>
+  </ul>
+
+  <h3>5.7 置信度 <code>models/dashscope.py:evaluate_confidence</code></h3>
+  <p>qwen-plus 对照证据评估；decision-model-preview 为预留入口（未开通自动降级 chat）。维度口径：主源命中 55 + 跨源一致 30 + 新鲜度 15（由模型终评，非自写公式）。</p>
+
+  <h3>5.8 记忆 / 画像 <code>memory_store.py</code> + <code>memory/session.py</code></h3>
+  <ul>
+    <li>Mem0 全权负责抽取 / 去重 / 冲突解决；<code>profile_prompt(query)</code> 语义检索注入相关画像（非全量倾倒）。</li>
+    <li>无百炼密钥时优雅降级「无记忆」模式。会话级 <code>Session.context</code> 持 <code>ConversationContext</code>（懒加载）。</li>
+  </ul>
+
+  <h3>5.9 自进化 <code>evolution/</code></h3>
+  <ul>
+    <li><b>Reflexion（内循环）</b>：<code>reflexion.py</code> 失败诊断写 JSON buffer，<code>recent()/summary()</code> 注入 prompt。</li>
+    <li><b>Voyager（外循环）</b>：<code>voyager.py</code> skill 库（name/trigger/action），<code>infer_from_session</code> 从会话画像自动归纳。</li>
+    <li><b>杠杆仅四个</b>：prompt / skill / 工具列表 / 检索语料——<b>不微调权重</b>。</li>
+  </ul>
+
+  <h3>5.10 知识导入 <code>pypedia/ingest/</code></h3>
+  <table>
+    <tr><th>模块</th><th>职责</th></tr>
+    <tr><td><code>parsers.py</code></td><td>单文件→纯文本（trafilatura / pypdfium2 / mammoth / python-pptx / openpyxl / ebooklib）+ ZIP 炸弹 100:1 检测</td></tr>
+    <tr><td><code>sources.py</code></td><td><code>sources.json</code> 清单（filelock + 原子替换 <code>os.replace</code>）+ 统计</td></tr>
+    <tr><td><code>crawl.py</code></td><td>网页/GitHub 抓取（focused_crawler 同域发现 + MCP fetch→requests 双通路降级）</td></tr>
+    <tr><td><code>strategies.py</code></td><td>摄入策略类 <code>IngestStrategy</code>/<code>UrlStrategy</code>/<code>GithubStrategy</code>/<code>FileStrategy</code> + 内置语料批处理</td></tr>
+    <tr><td><code>preset.py</code></td><td>预置权威资料源（Python 官方文档 / CPython / 官方论坛）</td></tr>
+  </table>
+  <p>策略类上提共享流程（角色归一、文档组装、清单登记、索引写入与块数回填），子类只实现「抓什么 / 怎么失败降级」。<b>配置</b>：上传 50MB→413；<code>PARSE_TIMEOUT=120s</code>；URL 单站 <code>MAX_PAGES_PER_SITE=6</code>。</p>
+
+  <h3>5.11 Web 服务 <code>app.py</code></h3>
+  <ul>
+    <li>28 个 API 端点 + 根 HTML 页面（详见第 6 章）。</li>
+    <li>中间件链（Starlette「后注册在最外层」）：<code>request_log</code>（最外，记全部请求含 401）→ <code>auth_guard</code>（内，Bearer 校验，放行 <code>/</code> / <code>/static</code> / <code>/api/status</code>）。</li>
+    <li><code>/api/ask</code> 经 AskLimiter 配额门（并发信号量 + 60s 滑窗速率，429 + Retry-After）。</li>
+  </ul>
+
+  <h3>5.12 前端 <code>static/</code></h3>
+  <p>index.html 外壳（~300 行）+ js/ 10 模块：<code>util→md→chat→library→profile→evolve→plugins→editor→settings→app</code>。经典 script 标签共享全局（非 ES module），依赖序加载；共享状态（LEVEL/SID/BUSY/CONFIG）前置 util.js 防跨脚本 TDZ；<code>api()</code> 统一入口自动注入令牌，401 弹令牌框。</p>
+
+  <h3>5.13 万物皆插件内核 <code>pypedia/units/</code></h3>
+  <p>「内核即注册表、注册表即内核」：23 项内置能力的唯一真值源是 <code>units/builtins.py</code> 的 Unit manifest，<code>UnitRegistry</code> 管注册/门控/图执行，<code>PluginRegistry</code> 是其兼容子集（agent 工具循环与提示词消费方走后者，双注册保证「装得上看得见」）。市场安装（<code>market.py</code>）与编辑器导出（<code>editor.py</code>）走同一契约。</p>
+  <table>
+    <tr><th>概念</th><th>契约要点</th></tr>
+    <tr><td>三种 Unit 类型</td><td><code>plugin</code>（能力插件，无扩展字段）/ <code>agent</code>（单 Agent，带 <code>agent_def</code>）/ <code>team</code>（团队，带 <code>team_def</code>）；统一核心 = manifest + contributions</td></tr>
+    <tr><td>manifest 关键字段</td><td><code>id</code>（kebab-case）/ <code>type</code> / <code>version</code>（semver）/ <code>min_platform</code>（安装门禁）/ <code>dependencies</code>（id + 版本区间）/ <code>default_enabled</code> / <code>switchable</code>（false=空壳入口恒开）/ <code>env_gate</code>（部署态硬开关）/ <code>apply</code>（immediate/restart）/ <code>form</code>（template 模板 / instance 成品，默认 instance）</td></tr>
+    <tr><td>贡献点 contributions</td><td><code>tools</code>（图内模型调用消费）/ <code>agent_tools</code>（工具循环裸入口）/ <code>system_prompt_sections</code>（带 order 的提示词段）/ <code>rules</code>（P5 规则引擎激活条件与动作）/ <code>ui_panels</code>（前端面板，资产可懒加载）/ <code>python_exec</code> · <code>model_adapter</code> · <code>storage</code>（Seam 实现，同类型仅 1 个生效）/ <code>schedule</code>（cron 定时）</td></tr>
+    <tr><td>图节点（node_graph）</td><td><code>entry/input</code>（入口）/ <code>exit/output</code>（出口）/ <code>process</code>（受限 expr 求值或 ref+method 处理器）/ <code>plugin</code>（引用 unit 主工具）/ <code>model-call/llm</code>（唯一 LLM 节点，注入当前可见工具）/ <code>judge</code>（按出边 condition 选分支，实现控制流与循环）</td></tr>
+    <tr><td>ref 约定（P7 修复）</td><td>plugin/process 节点的引用键<strong>双位置容错</strong>：节点级 <code>ref</code>（规范约定）优先，<code>params.ref</code>（画布直出形状）兼容；导出前 <code>_normalize_graph</code> 归一（params.ref 提升为节点级、剥画布坐标 x/y，幂等）；<code>method</code>/<code>ref</code> 不作处理器参数传入</td></tr>
+    <tr><td>图执行语义</td><td>单 payload 沿边流动 + 累积 data 字典；顺序边取第一条，judge 边按 condition（受限 builtins 求值）选分支；<code>GraphRuntime.execute(graph, input_data)</code> 返回 <code>{result, outputs, data}</code></td></tr>
+    <tr><td>安装三重门禁</td><td>schema 契约（<code>units/schema/unit.schema.json</code>）+ <code>min_platform</code> 平台版本 + <code>dependencies</code> 版本区间，不过即拒收不落盘；Zip Slip 逐条校验 + 10MB/200 文件上限；<strong>不执行上传内容</strong></td></tr>
+  </table>
+  <div class="note"><b>成品示范</b>：<code>units/examples/python-encyclopedia</code> 把整条引擎管线封装为 13 节点单 Agent 图（截断→检索→压缩→分步→提示词→model-call→置信度→judge 二审分支→记忆→自进化），<code>encyclopedia.run(query, level)</code> 即图执行入口；<code>units/examples/hello-world</code> 为最小插件示例。</div>
+
+  <h3>5.14 图系统设计规范（四源深挖：流程图 ISO 5807 + Blender 几何节点 + Blender 材质（着色器）节点 + ComfyUI 节点图）</h3>
+  <p>本节是「图即引擎」的完整设计规范：先立<b>设计思想总纲</b>，再给出细分到原子的<b>元素清单</b>，然后把三大借鉴源按官方文档 / GitHub 源码 / 官方规范逐项深挖（分类树、节点 I/O、数据类型、参数契约、符号标准），逐一对照落地情况，并对四源全部元素做<b>穷尽映射</b>（§5.14.9，264 项元素逐一对照本项目，含「表面无关实则有用」的深度挖掘映射与明确不采纳项及重审条件），最后附完整教程资源（§5.14.10）。规范与代码同源：契约在 <code>units/schema/unit.schema.json</code>，运行时在 <code>pypedia/units/graph.py</code>，编译/校验在 <code>pypedia/units/editor.py</code>，profile 隔离在 <code>pypedia/units/profile.py</code>。</p>
+
+  <h4>5.14.1 设计思想总纲</h4>
+  <table>
+    <tr><th>思想</th><th>内涵</th><th>在本项目的落地</th></tr>
+    <tr><td><b>① 对象与类</b></td><td>用「类 / 对象」理解一切 Unit：manifest 是<b>类</b>的定义，安装实例化后的运行体是<b>对象</b>。类定义可复用、可定制；对象各自持有自己的状态</td><td>manifest <code>form</code> 字段：<code>template</code> = 类（开发侧通用定义，待定制）/ <code>instance</code> = 对象（成品，已配置开箱即用，仅需填环境项）；两类均可上架市场，安装即「new 出一个对象」（§5.13）</td></tr>
+    <tr><td><b>② 独立 profile</b></td><td>每个团队、每个单 Agent 都是一个<b>带独立 profile 的对象</b>：配置 / 状态 / 记忆 / 会话 / 凭证五维隔离，互不影响</td><td><code>ProfileManager</code> 文件系统级隔离：<code>profiles/&lt;name&gt;/{config,state,memory,sessions,credentials}</code> 懒创建；<code>agent_def.home_profile</code> 声明该 Agent 私有 HOME；<b>团队本身也是一个对象</b>，额外持一层 profile 承载协作规则</td></tr>
+    <tr><td><b>③ 图两态与双向编译</b></td><td>图有两个态：<b>呈现态</b>（画布，人读人改，带坐标 / 颜色 / 视觉分组）与<b>契约态</b>（node_graph 规范 JSON，机读机执行）。两者可以互相转化；一方变化，另一方动态调整——类比「高级语言 ↔ 编译器 / 解释器 ↔ 机器语言」</td><td>编译链：画布 → <code>_normalize_graph</code>（幂等归一）→ <code>validate_graph</code>（语法级检查）→ <code>export_unit</code>（schema 复检）→ 契约态；反编译：契约态 → 编辑器加载渲染 → 画布；<code>GraphRuntime</code> 是解释器（详见 5.14.8）</td></tr>
+    <tr><td><b>④ 嵌套图</b></td><td>每个 Agent 内部有一张独立的图；整个团队另有一张独立的图。图既尊重各自的独立性，又表达「虽然独立却相互联系」的协作关系</td><td>两层契约：<code>agent_def.flow</code>（单 Agent 内部图）+ <code>team_def.graph</code>（团队图，节点引用成员 Agent unit）；成员间 profile 相互隔离（详见 5.14.7）</td></tr>
+  </table>
+  <div class="note"><b>设计哲学要点（最新口径，四思想合一）</b>：① <b>万物皆对象</b>——manifest 是类（<code>form=template</code>）、安装/实例化是对象（<code>form=instance</code>），团队本身也是一个对象；② <b>万物皆插件</b>——内核即注册表，23 项内置 + 市场单元走同一契约；③ <b>图就是引擎</b>——GraphRuntime 直接解释执行 node_graph，模型调用是唯一 LLM 节点；④ <b>图两态双向编译</b>——画布呈现态 ↔ node_graph 契约态互为投影、动态同步，ComfyUI UI/API 双格式与 Blockly JSON round-trip 是工业级先例；⑤ <b>每团队每 Agent 独立 profile</b>——五维隔离互不影响，联系的是数据流不是状态池；⑥ <b>恒等无折扣</b>——图封装与旧架构产出一致性经真实测试逐项比对。</div>
+
+  <h4>5.14.2 图的最小元素集（细分到不能再细分）</h4>
+  <p>一张图就是 <code>{"nodes": [...], "edges": [...]}</code>（schema 约束 <code>additionalProperties:false</code>，加不进第三个字段）。全部元素细分如下：</p>
+  <table>
+    <tr><th>层</th><th>元素</th><th>定义（原子，不可再分）</th></tr>
+    <tr><td rowspan="5"><b>节点</b><br/>（nodes[] 的一项）</td><td><code>id</code></td><td>字符串，图内唯一；data 字典按它索引历史输出</td></tr>
+    <tr><td><code>type</code></td><td>六种之一：<code>entry</code>（入口，注入 payload）/ <code>exit</code>（出口，捕获结果并终止）/ <code>process</code>（受限 expr 求值或 ref+method 处理器）/ <code>plugin</code>（引用 unit 主工具）/ <code>model-call</code>（唯一 LLM 节点，注入当前可见工具）/ <code>judge</code>（只选边不改数据）</td></tr>
+    <tr><td><code>ref</code></td><td>引用键：plugin 节点 → 被引 unit id；process 节点 → 处理器定位。双位置容错：节点级优先，<code>params.ref</code> 兼容（P7 修复，§5.13 已记）</td></tr>
+    <tr><td><code>params</code></td><td>参数对象：<code>method</code>（同 unit 多工具时的选择器）/ <code>expr</code>（process 表达式）/ <code>identity</code>（model-call 身份①）/ 其余键原样透传处理器</td></tr>
+    <tr><td><code>position.x/y</code></td><td>画布坐标——<b>纯呈现层状态</b>，非图语义，导出时剥除</td></tr>
+    <tr><td rowspan="3"><b>边</b><br/>（edges[] 的一项）</td><td><code>from</code></td><td>源节点 id</td></tr>
+    <tr><td><code>to</code></td><td>目标节点 id（可回指更早节点 → 循环）</td></tr>
+    <tr><td><code>condition</code></td><td>judge 出边的分支条件（Python 布尔表达式）；顺序边留空</td></tr>
+    <tr><td rowspan="4"><b>控制流原子</b></td><td>顺序</td><td>无 condition 的边；一节点多条顺序边时取<b>第一条</b></td></tr>
+    <tr><td>选择</td><td>judge 节点出边按 condition 求值：<b>首个真值胜出</b>；无 condition 的边为 fallback；全假取第一条兜底</td></tr>
+    <tr><td>循环</td><td>边回指（to 指向图中更早节点）+ <code>max_steps=1000</code> 步数墙兜底（超限抛 GraphError，疑似未终止环）</td></tr>
+    <tr><td>步进</td><td>单 payload 沿当前边流动，节点执行完原地累积进 data，再选下一条边</td></tr>
+    <tr><td rowspan="3"><b>数据流原子</b></td><td><code>payload</code></td><td>单值，沿边流动的「信使」</td></tr>
+    <tr><td><code>data</code></td><td>累积字典（节点 id → 该节点输出），任意下游节点可读——ComfyUI Get/Set「无线数据」的等价机制</td></tr>
+    <tr><td>求值命名空间</td><td><code>{payload, data}</code> + 受限 builtins（19 个无害内置，绝无 eval/exec/open/__import__）；condition 与 expr 同为开发者信任级</td></tr>
+  </table>
+  <div class="note"><b>处理器签名三层兼容</b>（graph.py <code>_call_handler</code>）：<code>handler(payload, data=..., **params)</code> → <code>handler(payload, **params)</code> → <code>handler(payload)</code>，逐级退化——覆盖 P1 简单处理器与需要读上游累积 data 的管线处理器。<b>连接形态语义</b>（借鉴 Blender 字段三态，详见 5.14.4）：payload 边 = 单值流动（圆形插槽语义）；condition / expr 挂边运行时求值（菱形插槽语义——值随 data 上下文变化）；<code>position</code> 是纯视觉属性（菱形带点——当前为单值，无逐元素语义）。<b>工业先例印证</b>（Blockly JSON 序列化，developers.google.com/blockly）：① 契约态是 JSON 而非私有二进制，天然可进版本管理；② JSON 中 <code>x/y</code> 属呈现态残留、<code>type/inputs/fields</code> 属契约态本体——与本表「position 非图语义、导出剥除」完全同构；③ 节点 <code>id</code> 稳定是 diff / 协同 / undo 的基础；④ shadow 块 = 输入槽默认值节点（对应 params 缺省值）；⑤ 类型化连接器（<code>nextStatement:"Action"</code>）编译期拒非法连线。</div>
+
+  <h4>5.14.3 流程图：三大结构 + ISO 5807 符号标准</h4>
+  <p>1966 年 Böhm 与 Jacopini 证明<b>结构化程序定理</b>：任何适当算法都可以分解为<b>顺序、选择（if-then-else）、循环（while-do）</b>三种控制结构。项目图运行时把三结构落为原子规则：</p>
+  <table>
+    <tr><th>结构</th><th>图中形态</th><th>运行规则</th><th>成品示范（python-encyclopedia 13 节点图）</th></tr>
+    <tr><td>顺序</td><td>链式节点 + 无 condition 边</td><td>取第一条出边</td><td><code>e→t→r→c→p→b→g→k</code>：截断→检索→压缩→分步→提示词→生成→置信度一字排开</td></tr>
+    <tr><td>选择</td><td>judge 节点 + 带 condition 的出边</td><td>首个真值 condition 胜出，空 condition 为 fallback</td><td><code>j→v</code>（condition <code>(data.get('k') or {}).get('needs_review', False)</code>，走二审）/ <code>j→m</code>（fallback，跳过二审）</td></tr>
+    <tr><td>循环</td><td>边回指</td><td>回到更早节点重跑；max_steps 兜底</td><td>当前成品图为无环 DAG；循环能力由运行时保证（judge 条件 + 回指边即可表达 while）</td></tr>
+  </table>
+  <p>三结构齐备即<b>图灵完备的表达力下限</b>：确定性步骤（process/plugin 节点）承载「做什么」，judge 分支承载「往哪走」，模型调用是图中唯一的 LLM 节点——「全管线即一张图」由此成立。</p>
+  <p><b>符号标准</b>：ISO 5807（源自 1970 ANSI 标准）定义了全套流程图符号，形状本身就是语法。核心五符号（覆盖 90% 场景）：<b>椭圆/圆角=起止</b>（terminator）、<b>矩形=过程</b>（process，一框一步）、<b>菱形=判断</b>（decision，唯一允许多出口的符号，每条出边必须标注条件 Yes/No）、<b>平行四边形=输入/输出</b>（data，数据跨越边界）、<b>箭头=流向</b>（flowline，约定自上而下、自左而右；交叉不即汇合，汇合须有汇流符号）。完整 22 符号按家族分组：</p>
+  <table>
+    <tr><th>家族</th><th>符号（全 22，ISO 5807）</th></tr>
+    <tr><td>流程 Flow</td><td>起止（椭圆）/ 过程（矩形）/ 判断（菱形）/ 流向箭头</td></tr>
+    <tr><td>数据与 I/O</td><td>输入输出（平行四边形）/ 文档（底波矩形）/ 多文档 / 人工输入（顶翘矩形）/ 显示（底弧矩形）</td></tr>
+    <tr><td>控制 Control</td><td>人工操作（梯形）/ 预定义过程（两侧双线矩形——引用别处定义，即「子程序」）/ 延迟（半圆矩）/ 准备（六边形）/ 汇流（倒三角，多流合一）/ 或汇流（任一输入到即走）/ 和汇流（全部输入到才走）/ 循环界限</td></tr>
+    <tr><td>连接 Connector</td><td>页内连接器（小圆标字母，免长线）/ 页间连接器（五边形，标页码）/ 注释（大括号，挂注任意符号）</td></tr>
+    <tr><td>存储 Storage</td><td>数据库（圆柱）/ 直接存取存储 / 静态存储（三角）</td></tr>
+  </table>
+  <p><b>ISO 5807 五条绘制规则</b>（项目画布同源遵守）：① 一致性——同一份图内相同形状必须永远代表相同含义；② 简洁性——单图建议不超过 15~20 步；③ 方向正确——箭头反映真实流向，不得已交叉时用跳线区分；④ 选符精确——涉及判断必须用菱形，禁止矩形加「是否?」冒充；⑤ 颜色有规则——同类同色，总数不超 4~5 色。</p>
+  <p><b>项目取舍</b>：流程图家族里，项目落地了其中四个——起止（entry/exit）、过程（process/plugin）、判断（judge，出边带 condition 即 Yes/No 标注）、预定义过程（plugin 节点 ref 引用 unit，与「子流程引用」同思想）；存储家族由 profile 目录与知识库承担（非图内符号）；页内/页间连接器由「图内回指边 + 嵌套图两层引用」承担。**判断菱形是流程图中唯一的多出口符号**——这正是 judge 节点设计的直接来源。</p>
+
+  
+  <p><b>控制结构细分</b>（三结构之下，各变体的流程图模式与契约态要点）：</p>
+  <table>
+    <tr><th>结构</th><th>流程图模式（ISO 5807）</th><th>等价代码</th><th>契约态要点</th></tr>
+    <tr><td>if-else 双分支</td><td>菱形两出口各带 guard 标签，下方汇合</td><td><code>if(p){A}else{B}</code></td><td>judge 出边带互斥 condition，汇合即两分支同指一节点</td></tr>
+    <tr><td>单分支 if</td><td>菱形一出口接处理框，另一出口空直通</td><td><code>if(p){A}</code></td><td>双分支令 else 为空即退化；fallback 空 condition 边</td></tr>
+    <tr><td>switch-case 多路</td><td><b>多个判断框串联（判定链/判定树）</b>，非一个菱形引多线；每框两出口</td><td><code>switch(x){...}</code></td><td>多路=嵌套 if-else 链；建议单菱形出口 ≤3，超出应拆子流程；「图→树→表」三级编译典型样例</td></tr>
+    <tr><td>while（前测试）</td><td>判断框在循环体<b>上方</b>，假则跳过</td><td><code>while(cond){body}</code></td><td>可零次执行；循环不变量挂在回边切入点</td></tr>
+    <tr><td>do-while / repeat-until（后测试）</td><td>先处理框，判断框在<b>下方</b>，真回连</td><td><code>do{body}while(cond)</code></td><td><b>至少执行一次</b>；与 while 唯一实质区别=最少执行次数——契约态须固化 <code>test_position: pre|post</code>，否则画布与代码无法无损互转</td></tr>
+    <tr><td>for</td><td>初始化在循环前；条件判断在顶部；自增在循环体末尾</td><td><code>for(i=0;i&lt;n;i++){body}</code></td><td>for 是 while 的语法糖；图上漏画步进节点即成死循环——契约态必须显式携带步进</td></tr>
+    <tr><td>guarded if（GCL）</td><td>卫哨命令集：多 <code>guard→action</code> 任选一真；全假 abort</td><td><code>if x≥y→m:=x ▯ y≥x→m:=y fi</code></td><td>Dijkstra 1975（EWD418）；不确定选择需最弱前件演算证明；适合多主体竞争选择</td></tr>
+    <tr><td>guarded do（GCL 循环）</td><td>卫哨命令集重复直至全假</td><td><code>do x&gt;y→x:=x−y ▯ y&gt;x→y:=y−x od</code></td><td>对 while 的推广；退出时保证所有 guard 为假；需不变量 P + 界函数 t</td></tr>
+    <tr><td>嵌套循环</td><td>外层循环体内含完整循环结构；循环体本身即子图</td><td>双重 for</td><td>Floyd 归纳断言法：<b>每个循环各切一刀、各贴一条不变量</b></td></tr>
+  </table>
+  <p><b>循环不变量的图式表达</b>（Floyd 1967 / Hoare 1969）：不变量是挂在「回边切入点（cut point）」上的<b>边属性/节点标注</b>，不是独立节点——直接支持「边携带断言」的契约设计；Hoare while 规则 <code>{I∧b}S{I}</code> + <code>I∧¬b⇒Q</code> + 界函数 t 严格下降，即「正确性三义务」。</p>
+  <p><b>goto 论战时间线</b>（结构化编程的史料，决定「逃生舱」哲学）：1966 Böhm–Jacopini 三结构图灵完备（注意：论文自述等价性需引入额外布尔状态，并非无代价分解）→ 1968 Dijkstra《Go To Statement Considered Harmful》（静态文本与动态执行的可对应性；「程序员质量是其程序中 go to 密度的递减函数」）→ 1974 Knuth 反驳一刀切（错误清理/深嵌套跳出/FSM 场景 goto 更清晰；并指出任何程序可被压平成「程序计数器单循环」——goto 没了结构也没了）→ 1975 Dijkstra EWD418 以 GCL + wp 演算给出「无 goto 且可推导正确性」的正向答案。<b>现代结论</b>：① 三结构图灵完备 ⇒ goto 非必要（定理层）；② 可结构化 ≠ 可读——结构化是<b>默认纪律 + 显式逃生舱</b>，非绝对禁令；③ <code>break/continue/return/throw</code> 是受限、具名、结构保持的跳转——正是画布图中回边与出口边的规范形态，契约态应作一等公民保留而非糖化消解（对应 5.14.8「逃生舱显式化」模式）。</p>
+  <p><b>Nassi-Shneiderman 盒图</b>（1972，别名结构图；相关标准 DIN 66261）：完全去掉带箭头流程线，整个算法写在一个矩形框内、框内嵌子框，无 goto 表示手段。与流程图对比：功能域一目了然、与代码距离近，但 goto/break/continue 无法表示、修改需重画。对项目的启示：盒图是「呈现态=树形嵌套、契约态=嵌套 JSON」的天然同构先例——画布可提供盒图视图作为流程图画布的<b>受约束投影</b>（禁 goto 子集，供教学/审查态），完整流程图画布作为超集保留逃生舱。</p>
+  <p><b>UML 活动图并行语义</b>（UML 2.x，Petri 网启发的 token 流语义——节点在其所需 token 全部到达时才「点火」）：Fork（粗横条，复制 token 并发推进）/ Join（粗横条，等待所有入边后发出单一 token）/ Merge（菱形，token 直通<b>不等待不同步</b>，禁止用于同步并发流）/ Decision（菱形，guard 互斥完备，至多一条 <code>[else]</code>）。<b>经典错误：用 merge 闭合 fork</b>——逐 token 放行导致后续节点每分支各执行一次；正确铁律是 <b>fork 用 join 闭合、decision 用 merge 闭合</b>。双终止节点：Activity final（牛眼，终止整个活动杀所有 token）vs Flow final（圆内叉，仅灭所在分支）。泳道（Activity Partition）按责任方分区，跨区边即责任移交——与「团队图节点引用成员 Agent」同思想。项目当前 judge + 回边已覆盖顺序/选择/循环；Fork/Join 并行语义列为演进项（P8），契约预留双终止与 guard 互斥完备约束。</p>
+<h4>5.14.4 借鉴 Blender 几何节点（Geometry Nodes）</h4>
+  <p>Blender 几何节点是程序化建模的工业级答案：一条几何流从左（Group Input）流到右（Group Output），中间每个节点一职责，靠<b>字段懒求值</b>与<b>实例引用</b>把复杂系统拆成可复用的小函数。以下按「官方分类树 → 核心语义 → 接口机制 → 落地对照」展开。</p>
+
+  <p><b>① 官方节点分类树</b>（docs.blender.org/manual/en/latest/modeling/geometry_nodes/，4.2 版共 14 大类；每类下再分「读/采样/写/操作/基本体/拓扑」子组）：</p>
+  <table>
+    <tr><th>大类</th><th>代表节点（按官方手册子组归类，节选）</th></tr>
+    <tr><td>属性 Attribute</td><td>属性统计 / 域大小 / 模糊属性 / 捕捉属性（4.2 起一次捕获多属性）/ 删除已命名属性（支持前后缀批删）/ 存储已命名属性（4.2 起支持 8-bit 整数属性）</td></tr>
+    <tr><td>输入 Input</td><td>常值类：布尔 / 颜色 / 图像 / 整数 / 材质 / 旋转（4.2 新）/ 字符串 / 值 / 矢量；场景类：3D 游标 / 活动摄像机 / 集合信息 / 图像信息 / 是否为视图 / 鼠标位置 / 物体信息（4.2 起带变换矩阵输出）/ 场景时间 / 自身物体 / 视图变换</td></tr>
+    <tr><td>输出 Output</td><td>预览器节点（Viewer：几何 + 字段叠加显示，可选求值域）</td></tr>
+    <tr><td>几何 Geometry</td><td>读：ID / 编号 / 已命名属性 / 法向 / 位置 / 半径 / 选中项 / 活动元素；采样：几何接近 / 最近编号 / 光线投射 / 采样编号 / 采样最近 / 采样最近表面（4.2 支持 Group ID 分组处理）；写：设置 ID / 位置 / 选择；操作：边界框 / 凸壳 / 删除几何体 / 复制元素 / 按距离合并 / 拆分为实例 / 排序元素 / 变换几何体（4.2 起支持矩阵变换）/ 分离组件 / 分离几何体 / 几何体转实例 / 合并几何体 / 烘焙</td></tr>
+    <tr><td>曲线 Curve</td><td>读 8（控制柄位置 / 长度 / 切向 / 倾斜 / 端点选择 / 控制柄类型 / 是否闭合 / 样条参数）；写 8；操作 8（曲线转网格 / 转点 / 表面变形 / 填充 / 圆角 / 插值 / 重采样 / 反转 / 细分 / 修剪）；基本体 8（圆弧 / 贝塞尔线段 / 圆环 / 直线 / 螺旋 / 二次贝塞尔 / 四边形 / 星形）；拓扑 3（点所属曲线 / 偏移点 / 曲线的点）</td></tr>
+    <tr><td>实例 Instance</td><td>实例化于点上 / 实例转点 / 实现实例（4.2 支持部分实现）/ 旋转 / 缩放 / 平移 / 设置实例变换（4.2 新）/ 实例变换（4.2 新）</td></tr>
+    <tr><td>网格 Mesh</td><td>读 11（边夹角 / 边邻项 / 边顶点 / 边到面组 / 面面积 / 面邻项 / 面组边界 / 面是否平坦 / 是否平滑着色 / 网格孤岛 / 最短边路径）；写 2；操作 13（对偶网格 / 边路径到曲线 / 挤出 / 翻面 / 网格布尔（4.2 增 float 解法器）/ 转曲线 / 转点 / 转体积 / 缩放元素（4.2 重写快 4-10 倍）/ 拆边 / 细分 / 表面细分 / 三角化）；基本体 10（锥 / 立方 / 柱 / 栅格 / 棱角球 / 圆环 / 直线 / 经纬球）；拓扑 9 + UV 2</td></tr>
+    <tr><td>点 Point</td><td>分布点于体积内 / 分布点于面上 / 点 / 点转顶点 / 点转体积 / 设置点半径</td></tr>
+    <tr><td>体积 Volume</td><td>体积立方体 / 体积转网格</td></tr>
+    <tr><td>模拟区 Simulation</td><td>模拟区 / 重复区 / 遍历区（4.3）/ 烘焙节点</td></tr>
+    <tr><td>材质 / 纹理 Material / Texture</td><td>材质：替换 / 编号 / 选择 / 设置 / 设置编号；纹理 9 种程序纹理：砖墙 / 棋盘格 / 渐变 / 图像 / 迷幻 / 马氏分形 / 噪波 / 沃罗诺伊 / 波浪 / 白噪波</td></tr>
+    <tr><td>实用工具 Utilities</td><td>颜色（渐变 / 混合 / RGB 曲线 / 分离）/ 文本（合并 / 替换 / 切片 / 特殊字符 / 长度 / 转曲线）/ 矢量（合并 XYZ / 分离 / 矢量曲线 / 矢量运算 / 矢量旋转）/ 数值（布尔运算 / 钳制 / 比较 / 浮点曲线 / 浮点转整数 / 映射范围 / 运算 / 混合）/ 旋转（对齐欧拉至矢量（4.2 起 Align Rotation to Vector 取代）/ 旋转欧拉）/ 随机值 / 切换 / 力场 / 累积场（4.2 起支持矩阵）/ 在编号处评估 / 在域上评估</td></tr>
+    <tr><td>群组 Group / 毛发 Hair</td><td>群组=节点组本身（可嵌套、入库为资产）；毛发为 4.3+ 完整子系统：变形 8 / 生成 4 / 辅助 5 / 读取 5 / 实用工具 3 / 写入 1</td></tr>
+  </table>
+
+  <p><b>② 核心语义一：字段（Fields）—— 懒求值的「函数式数据」</b>（官方手册 fields.html）：</p>
+  <ul>
+    <li><b>字段本质是函数</b>：把任意数量输入变换为单值，可对不同输入数据多次求值——同一字段接到不同几何上，结果逐元素而变（Random Value 接 Scale，每个实例缩放不同）。</li>
+    <li><b>三态插槽</b>（socket shape 即类型系统的一部分）：<b>圆形</b>=必须单值，不能接字段（输出则恒为单值）；<b>菱形</b>=可接字段、可输出字段；<b>菱形带点</b>=可为字段但当前是单值（每元素同值，Socket Inspection 显示具体值）。</li>
+    <li><b>三类节点</b>：数据流节点（几何进几何出，真改数据）+ 字段节点（菱形插槽，按元素逐点求值的「指令」）；字段节点再分输入节点（Position / ID / 端点选择——脱离上下文无意义）+ 函数节点（Math / 几何接近）。</li>
+    <li><b>字段上下文</b>：字段求值语境 = 几何组件类型 + 属性域；同一字段子树在不同数据流节点下求值结果不同（第一个 Set Position 改过的位置，第二个再求值就是新位置）。要「冻结」中间值用 <b>Capture Attribute</b>（存为匿名属性）。</li>
+    <li><b>可视化约定</b>：字段连线画虚线，单值连线画实线，接错画红色实线；取单值用 Sample Index / 属性统计。</li>
+  </ul>
+
+  <p><b>③ 核心语义二：Zone 机制 —— 图内循环与模拟的官方表达</b>：</p>
+  <table>
+    <tr><th>Zone</th><th>官方语义</th></tr>
+    <tr><td>模拟区 Simulation Zone</td><td>两节点夹一区：输入仅在模拟开始时求值一次并传入下一状态；区内节点每步（帧）重求值；<b>不允许区内连线流出</b>（结果只能经 Simulation Output 出，天然防「读取未来」）；带 Delta Time（帧间秒数=帧率倒数，驱动速率相关节点）/ Skip Forward 直通；支持子步；播放时自动缓存（时间轴强黄线）、可烘焙到磁盘供渲染农场乱序渲染、可关缓存省内存；仅修改器上下文可用（Tool 上下文禁用）</td></tr>
+    <tr><td>重复区 Repeat Zone</td><td>Iterations 输入指定重复次数（可运行时决定，如按楼层数生成楼体）；区内可读 Iteration 输入；外部输入每帧恒定；Bake Items 面板可把任意插槽拖入烘焙项、Ctrl-LMB 重命名</td></tr>
+    <tr><td>遍历区 Foreach Zone（4.3+）</td><td>对每个输入元素执行一次区内逻辑</td></tr>
+  </table>
+
+  <p><b>④ 核心语义三：节点组接口（Group Sockets 面板）—— 「类」的参数化边界</b>：</p>
+  <ul>
+    <li><b>接口条目四类型</b>：Inputs / Outputs / Panels（插槽分组，可拖拽嵌套，恒在接口底部）/ Panel Toggle（面板标题布尔复选框，仅面板选中时可建；注意：<b>toggle 不会自动置灰插槽</b>——真要禁用得接 Switch Node 再手动断开）。</li>
+    <li><b>插槽属性</b>：类型 / 描述（悬停提示）/ 属性域 / 默认属性 / 子类型 / 默认值 / Min-Max（仅 UI 旋钮范围，<b>不钳制流经数据</b>——超限值照常处理）/ 向量维度 2D/3D/4D / 展开菜单 / 默认收起面板 / 结构类型（Auto/Single/Animation）。</li>
+    <li><b>Subtype 全分类学</b>（只改显示与编辑行为，不改底层类型）：整数（无 / 像素 px / 百分比 / 因子）；浮点（无 / 像素 / 百分比 / 因子 / 质量 / 角度 / 时间·场景相对 / 时间·绝对秒 / 距离 / 波长 mm–µm–nm–pm / 色温 K / 频率 Hz）；矢量（无 / 像素 / 百分比 / 因子 / 平移 / 方向 / 速度 / 加速度 / 欧拉角 / XYZ）；字符串（无 / 文件路径）。</li>
+    <li><b>Make Group（Ctrl+G）</b>：单节点成组保留原接口与默认值并继承节点名；多节点成组按外部连线自动生成 Group Input/Output。</li>
+    <li><b>4.2 矩阵套件</b>（新增 socket 类型 Matrix）：Combine Transform / Separate Transform / Transform Point / Transform Direction / Project Point（透视除法）/ Combine Matrix / Separate Matrix / Set Instance Transform / Instance Transform / Invert Matrix / Multiply Matrices / Transpose Matrix；4x4 矩阵可作属性存储、可被 Accumulate Field 累积。</li>
+  </ul>
+
+  <p><b>⑤ 落地对照表</b>（Blender 元素 → 项目对应 → 状态）：</p>
+  <table>
+    <tr><th>Blender 元素（细分）</th><th>语义</th><th>本项目对应</th><th>状态</th></tr>
+    <tr><td>Group Input / Group Output</td><td>节点组的接口边界：什么进、什么出</td><td><code>entry</code> / <code>exit</code> 节点</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>Node 节点</td><td>一节点一职责的最小执行单元</td><td>六类节点（entry/exit/process/plugin/model-call/judge）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>Socket 三态（圆/菱/菱加点）</td><td>单值 / 字段 / 当前单值的形态语义</td><td>payload 边=单值流；condition/expr=挂边求值；position=视觉属性</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Link 连线（字段虚线/单值实线/接错红实线）</td><td>有向边 + 求值语义可视化</td><td><code>edges[].from/to</code>；视觉编码待增强</td><td>语义 ✅ / 视觉 演进</td></tr>
+    <tr><td>Node Group 节点组</td><td>折叠的子树，可当「函数」复用</td><td>unit 引用（plugin 节点 <code>ref</code>=unit id）；团队图节点引用成员 Agent</td><td><span class="ok">✅ 契约已落地</span></td></tr>
+    <tr><td>Interface Panels / Panel Toggle</td><td>接口分组与布尔开关</td><td>manifest <code>contributions</code> 分组（tools / system_prompt_sections / rules / ui_panels / seams…）</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Field 字段（懒求值 + 上下文 + Capture 缓存）</td><td>「函数式数据」：值不预计算，按上下文逐元素求值</td><td>condition / expr 运行时求值 + data 累积字典（按节点 id 索引）</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Attribute 属性 + 属性域</td><td>数据挂在几何元素上，按域求值</td><td>data 字典（「域」即节点 id）</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Selection 选择</td><td>布尔字段，决定操作影响哪些元素</td><td>judge condition 选分支</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Simulation / Repeat / Foreach Zone</td><td>图内循环：迭代次数可运行时定、状态逐帧传递、禁止读取未来</td><td>边回指 + max_steps 步数墙；data 字典即跨迭代状态载体</td><td>机制 ✅（Zone 封套 演进）</td></tr>
+    <tr><td>Instances 实例</td><td>引用复用而非全拷贝</td><td>双注册表引用 unit（装得上看得见，不拷贝代码）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>Switch Node 开关节点</td><td>条件启用两条链路之一</td><td>judge 双分支（二审 v / 跳过 m）</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Frame 框架</td><td>视觉分组容器（快捷键需核实：现行手册帧选中为 NumpadPeriod；3.4 的反引号与误传的 Ctrl+J 均非 Frame——Ctrl+J 实为 Join Group Inputs）</td><td>画布视觉分组</td><td>演进项（P8）</td></tr>
+    <tr><td>Mute 旁路（M）</td><td>临时禁用节点 / 链路</td><td>—</td><td>演进项（P8）</td></tr>
+    <tr><td>Spreadsheet 电子表格</td><td>逐元素查看数据</td><td><code>GET /api/units/{id}</code> 详情端点看 node_graph 与执行产物</td><td>部分</td></tr>
+    <tr><td>Geometry 组件 Mesh/Curves/Points/Instances/Volumes</td><td>五类几何数据</td><td>payload 任意类型（dict / str / 对象），不预设类型体系</td><td><span class="ok">✅ 更宽</span></td></tr>
+    <tr><td>Socket 子类型全分类学</td><td>值的物理语义提示（角度/波长/色温/频率…）</td><td>params 自由键值（schema 开放）</td><td><span class="ok">✅ 更宽</span></td></tr>
+    <tr><td>4.2 矩阵套件（12 节点）</td><td>变换作为一等数据类型</td><td>payload 可承载任意对象（含变换矩阵）</td><td><span class="ok">✅ 更宽</span></td></tr>
+  </table>
+
+    <p><b>⑥ 版本演进与 5.x 新范式</b>（几何节点不是静止目标，版本时间线如下；编写节点 schema 时必须防「参数集重构」式 breaking change——同名的 Principled BSDF 在 3.x→5.x 就发生过输入集重构，详见 5.14.5 警示）：</p>
+  <table>
+    <tr><th>版本</th><th>新特性（已核实）</th></tr>
+    <tr><td>3.0</td><td>几何节点引入</td></tr>
+    <tr><td>4.0</td><td>几何节点正式化；Repeat Zone 重复区；模拟区单独烘焙</td></tr>
+    <tr><td>4.1</td><td>Menu Switch 菜单开关、Index Switch 索引开关、Bake 烘焙节点</td></tr>
+    <tr><td>4.2 LTS</td><td>矩阵套件（12 节点，Matrix 成为一等 socket 类型）；Capture Attribute 一次捕多属性；Realize 部分实现；Mesh 缩放元素性能重写（快 4-10 倍）</td></tr>
+    <tr><td>4.3</td><td>For Each Element Zone 遍历区；毛发完整子系统（变形 8 / 生成 4 / 辅助 5 / 读取 5 / 工具 3 / 写入 1）</td></tr>
+    <tr><td>5.0</td><td><b>Bundles / Closures 两大范式跃迁</b>：Bundle = 多类型通用捆包（Combine/Separate/Join Bundle 三件套，深绿松石色 socket），紧凑传输打包数据；Closure = 函数即值（浅棕色 socket），可存储并传递「节点输入+逻辑」组合、在别处 Evaluate Closure 执行、可捕获 zone 外值存入定义</td></tr>
+    <tr><td>5.2 LTS（2026-07 发布，维护至 2028-07）</td><td>Geometry Bundles / Lists；实验物理系统</td></tr>
+    <tr><td>5.3 beta</td><td>预期 2026-11（需核实确切发布日）</td></tr>
+  </table>
+  <p><b>编辑器界面与调试工具箱</b>（工业级节点编辑器的完整形态，项目编辑器演进参照）：标题栏 / N 面板侧边栏（Node/View/Options 分组）/ 顶部菜单（Add/Select/Node/Edge）/ 状态栏（<b>Socket Inspection</b>：悬停插槽直接查看中间值）/ 导航（帧选中/帧全部）/ 节点预览。调试机制比预想更丰富——<b>Node Timings 叠加层</b>（逐节点执行耗时可视化）、<b>Named Attributes 叠加层</b>、<b>Geometry Randomization</b>（打乱索引测试数据依赖）、Warning 节点 + Propagation 策略、Viewer 节点（Shift+Ctrl+LMB 快速连接、Ctrl+1..9 分配）、Spreadsheet 编辑器（逐元素查数据）、Statistics 面板。快捷键实测勘误：<b>Alt+D 不是清除标签</b>（实为 Duplicate Linked）；<b>Ctrl+J 不是建 Frame</b>（实为 Join Group Inputs，5.x 语义）；反引号在 3.4 是 Frame Selected、现行手册为 NumpadPeriod；真实存在的是 Ctrl+G 成组 / Tab 进组 / M 静音 / Ctrl+Alt+G 解组。</p>
+  <p><b>执行模型硬文档</b>：官方有 lazy-function graph 重构 commit（blender/blender 4130f1e674）；Field 上下文多次求值语义（同一 field 树在不同 data-flow 节点下结果不同）；匿名属性跨几何限制；嵌套实例渲染有层数上限（传 8 层，需核实是否硬限）。项目 data 字典即「跨迭代状态载体」，Zone 封套列为演进项。</p>
+
+  <h4>5.14.5 借鉴 Blender 材质（着色器）节点</h4>
+  <p>材质节点是与几何节点<b>同源不同 execution 语义</b>的第四参考源：两者共用同一套 socket 类型/颜色/节点组/Closure 机制，但材质是「按着色点立即求值 + 闭包传递」，几何是「延迟求值 + 上下文传播」——官方自己给出了「同一运行时、两种执行语义」的范例。材质节点对项目的独特贡献在<b>类型系统语义（socket 颜色/形状/转换矩阵）、合并算子不变量（Mix vs Add）、能力声明与降级（Cycles Only / EEVEE Only）、参数面板化接口（Panels/Toggle）与版本化参数集警示</b>。以下基于 Blender 5.2 LTS 官方手册（docs.blender.org/manual/en/latest/render/shader_nodes/）。</p>
+
+  <p><b>① 官方节点分类树</b>（5.2 LTS 九大类；5.x 相对 4.x 的分类学演进：置换类独立为 Displacement 大类、数学+转换合并为 Utilities、新增 Constant 常量子类、新增 Bundle/Closure/Repeat Zone/Menu Switch——「分类树随版本演进」本身是可借鉴的演进证据）：</p>
+  <table>
+    <tr><th>大类</th><th>节点清单（官方原名，节选核心）</th></tr>
+    <tr><td>Input 输入</td><td>Constant 子类（Boolean/Color/Integer/Menu/Value/Vector 六常量节点）+ 场景几何信息类（Ambient Occlusion / Attribute / Bevel / Camera Data / Fresnel / Geometry / Layer Weight / Light Path / Object Info / Texture Coordinate / UV Map / Wireframe / Raycast / Scene Time 等）</td></tr>
+    <tr><td>Output 输出</td><td>Material Output / AOV Output / Light Output / World Output</td></tr>
+    <tr><td>Shader 着色器</td><td>Principled BSDF（uber shader）/ Mix Shader / Add Shader / Emission / Transparent / Diffuse / Glossy / Glass / Refraction / Subsurface Scattering / Toon / Hair / Sheen（4.0 前名 Velvet）/ Translucent / Holdout / Metallic / Specular / Principled Volume / Volume Absorption / Volume Scatter / Background / Ray Portal BSDF 等</td></tr>
+    <tr><td>Displacement 置换（5.x 新大类）</td><td>Bump / Displacement / Normal Map / Vector Displacement</td></tr>
+    <tr><td>Texture 纹理</td><td>Brick / Checker / Environment / Gabor / Gradient / IES / Image / Magic / Noise / Sky / Voronoi / Wave / White Noise</td></tr>
+    <tr><td>Color 颜色</td><td>Blackbody / Brightness-Contrast / Color Ramp / Gamma / Hue-Saturation-Value / Invert / Light Falloff / Mix Color / RGB Curves / Wavelength / Combine Color / Separate Color / RGB to BW / Shader To RGB</td></tr>
+    <tr><td>Utilities 工具（5.x 合并数学+转换）</td><td>Math 子类（Math / Clamp / Map Range / Float Curve / Mix）+ Vector 子类（Vector Math / Mapping / Combine-Separate XYZ / Vector Rotate / Vector Transform / Normal 等）+ 控制流封装（Repeat Zone / Menu Switch / Closure / Evaluate Closure / Bundle 三件套 / Implicit Conversion / Script）</td></tr>
+    <tr><td>Group 组</td><td>节点组（可嵌套、禁递归、可入库为资产）</td></tr>
+  </table>
+
+  <p><b>② 核心节点 I/O 明细</b>：</p>
+  <ul>
+    <li><b>Material Output（材质输出）</b>：输入 Surface(Shader) + Volume(Shader) + Displacement(Displacement) 三入口（可与 Surface 并存，如浑浊玻璃）+ Thickness(Float，仅 EEVEE)；属性 Target（渲染引擎目标，可放多个输出节点为各引擎做专用设置）；无输出。材质三大组件 = Surface / Volume / Displacement。</li>
+    <li><b>Principled BSDF（5.2 OpenPBR 版）</b>：分层结构 = base layer（metal/diffuse/subsurface/transmission 四选一平滑混合）→ thin film → glossy coat → sheen。核心输入：Base Color(Color)、Roughness(Float 0-1)、Metallic(Float 0-1)、IOR(Float 滑杆 1.0-2.0，默认 1.5，物理范围 1.0-4.0)、Alpha(Float 0-1)、Thin Wall(Boolean，薄壁模式)、Normal(Vector)、Specular▸{Distribution(GGX/Multiscatter GGX)/IOR Level/Tint/Anisotropy}、Coat▸{Weight/Roughness/IOR/Tint/Normal}、Sheen▸{Weight/Roughness/Tint}、Emission▸{Color/Strength 0-10}、Transmission▸Weight、Thin Film▸{Thickness 400-800nm/IOR 默认 1.33}（Cycles Only）。输出 BSDF(Shader)×1。<b>版本断层警示</b>：3.x/4.x 时代为 Disney 模型，输入集是平铺的 Subsurface/Clearcoat/Anisotropic——同一节点名发生参数集重构（Weight 化 + Thin Film 新增）。设计「节点 schema 版本化」时必须处理此类 breaking change（对应 5.14.6 ComfyUI 的 NodeReplace 自动迁移与 V1→V3 契约演进）。</li>
+    <li><b>Mix Shader / Add Shader（shader 合并双算子）</b>：Mix = Shader×2 + Factor(Float) → Shader×1，<b>能量守恒</b>的混合；Add = Shader×2 → Shader×1，可<b>破坏</b>能量守恒（官方明确警告）。官方铁律：shader 之间<b>只允许</b> Mix/Add 两种运算，「No other operations are permitted」。</li>
+    <li><b>Math / Vector Math / Mix Color</b>：Math 运算全集约 46 个（函数 11 / 比较 9 / 取整 12 / 三角 12 / 换算 2，属性 Clamp 限输出 0-1）；Vector Math 28 种（输出动态：Vector 或 Value 标量）；Mix Color 支持 Data Type(float/vector/color/rotation) × 16 种混合模式 × Clamp Factor/Result。</li>
+    <li><b>Geometry / Texture Coordinate（上下文输入）</b>：Geometry 无输入，输出 Position/Normal/Tangent/True Normal/Incoming/Parametric/Backfacing/Pointiness(Cycles Only)/Random per Island(Cycles Only)（全 World Space，体积着色器仅 Position 与 Incoming）；Texture Coordinate 输出 Generated/Normal/UV/Object/Camera/Window/Reflection。</li>
+    <li><b>Bump / Displacement / Normal Map / Mapping</b>：Bump（Strength/Distance/Filter Width 默认 0.1/Height/Normal，Height 未接时 no-op 透传）；Displacement（Height/Midlevel 默认 0.5/Scale/Normal，属性 Space=Object/World）；Normal Map（Strength/Color，属性 Space=Tangent/Object/World、Convention=OpenGL/DirectX）；Mapping（Vector/Location/Rotation/Scale，属性 Vector Type=Point/Texture/Vector/Normal）。</li>
+  </ul>
+
+  <p><b>③ socket 颜色与类型语义</b>（官方 parts.html，全局统一的「颜色即类型」系统；项目插件端口类型声明后可复用此语义做跨插件盲连）：</p>
+  <table>
+    <tr><th>分组</th><th>类型 → 官方颜色</th></tr>
+    <tr><td>Built-in</td><td>Shader=bright green（鲜绿）/ Geometry=Sea Green / Menu=Dark Gray（枚举）/ Bundle=dark turquoise（深绿松石，多类型捆包）/ Closure=light brown（浅棕，函数即值）</td></tr>
+    <tr><td>Data</td><td>Color=yellow / Float=light gray / Vector=<b>dark blue（深蓝，注意：不是紫色——官方各版手册均为深蓝，「紫色」系误传）</b>/ Integer=lime green / Integer Vector=slate blue / String=light blue / Boolean=light pink / Rotation=pink / Matrix=dark pink</td></tr>
+    <tr><td>Data-Blocks</td><td>Object=orange / Material=salmon / Image=apricot / Collection=white / Texture=pink / Font=brown</td></tr>
+  </table>
+  <p><b>Socket 形状 = 数据结构语义</b>（与几何节点三态同源）：高矩形=Single 单值 / 菱形=Fields 逐元素可变 / 四格=Grid 体素像素 / 三线=Lists 同类型有序集 / 圆形=Dynamic 自适应。<b>隐式/显式双层转换矩阵</b>：隐式（Color↔Vector、Color↔Float 灰度、Color/Float/Vector→Shader 按 Emission 语义、Float↔Integer、Float↔Vector 广播/平均、Float↔Boolean、Rotation↔Matrix）；显式需专用节点（Shader To RGB、RGB to BW、<b>Implicit Conversion</b>——5.x 新增，把隐式转换显式化用于调试/澄清/强制转换）。</p>
+
+  <p><b>④ 执行与上下文模型</b>：材质节点的输出是 <b>shader</b>（表面/体积处的光照交互描述）而非表面颜色；四类 shader = BSDF / Emission / Volume / Background；每个 shader 节点有颜色输入、输出 shader，交由渲染器计算直接光照与全局光照。<b>Cycles vs Eevee 能力矩阵</b>（能力声明与降级的官方范式）：EEVEE 专属 = Shader To RGB（把 BSDF 转颜色，破坏 PBR 流水线）、Specular BSDF；Cycles Only = Toon/Hair/Sheen/Principled Hair、Pointiness/Random per Island、Beckmann 分布、Thin Film 等；<b>近似而非等价</b> = Eevee 的 Principled ≈ Diffuse+Glossy+Refraction+SSS 各限制之和、SSS 每通道半径用默认 socket 值（连线被忽略）。架构根因：Cycles 无偏路径追踪 vs EEVEE 光栅化+探针（「EEVEE has no real concept of rays」官方原话）。多引擎适配手段 = Material Output▸Target。</p>
+
+  <p><b>⑤ 节点组与 Closure</b>：Ctrl-G 建组 / Tab 进入 / Alt-G 解组；绿色标题栏；官方类比「类似编程中的函数——可复用、可组合、可参数化」；<b>允许嵌套、禁止递归</b>（防无限递归，DAG 完整性静态检查的官方实践）。接口机制：内部 Group Input/Output 节点表示数据进出；侧栏 <b>Group Sockets 面板</b>四类条目 = Inputs / Outputs / <b>Panels（插槽分组，可嵌套，恒在接口底部）/ Panel Toggle（面板标题布尔开关）</b>——官方原生「参数面板化 UI」。最佳实践：组内不放 Input/Output 节点；命名前缀约定（Mat_/Comp_/Geo_）；<code>.</code> 前缀隐藏资产（只能搜索访问）。<b>Closure / Evaluate Closure（5.x 函数式封装）</b>：Closure 定义 zone 封装可复用逻辑，「行为类似函数」，可在别处 Evaluate Closure 执行；<b>可捕获 zone 外值存入定义</b>（闭包语义直译）；Sync Sockets / Define Signature 签名同步机制。</p>
+
+  <p><b>⑥ 落地对照表</b>（材质节点元素 → 项目对应 → 状态）：</p>
+  <table>
+    <tr><th>材质节点元素（细分）</th><th>语义</th><th>本项目对应</th><th>状态</th></tr>
+    <tr><td>socket 颜色全局语义表</td><td>颜色即类型，跨节点树统一</td><td>插件端口类型声明 + 平台统一着色/图标</td><td>语义 ✅ / 视觉编码 演进</td></tr>
+    <tr><td>隐式/显式双层转换矩阵</td><td>兼容类型自动转、敏感转换显式节点</td><td>params 自由键值（schema 开放）；可增设显式适配器节点</td><td>机制 ✅（更宽）</td></tr>
+    <tr><td>Shader 句柄不可运算（只能 Mix/Add）</td><td>结果句柄是受约束类型，防误用</td><td>模型调用结果 / 工具句柄可设为受约束类型，只能经专用合并算子组合</td><td>设计模式已记录</td></tr>
+    <tr><td>Mix（能量守恒）vs Add（可破坏）双合并算子</td><td>合并语义两态，不变量文档化</td><td>多 Agent 结果合并提供 Mix（加权仲裁）与 Add（并行叠加）两态，各自写明不变量与破坏条件</td><td>设计模式已记录</td></tr>
+    <tr><td>Group Sockets 四类接口条目 + Panels/Toggle</td><td>参数面板化 UI、布尔开关控显隐</td><td>manifest <code>contributions</code> 分组（tools / system_prompt_sections / rules / ui_panels / seams）</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Closure + Evaluate Closure + 外部值捕获</td><td>函数式注入：宿主暴露 closure 输入，用户注入分支逻辑</td><td>「策略插槽」：宿主插件暴露可注入逻辑位（审批规则/路由策略），图上编写</td><td>设计模式已记录</td></tr>
+    <tr><td>Sync Sockets / Define Signature</td><td>接口 schema 变更时同步签名，多实例一致</td><td>manifest 版本化 + <code>min_platform</code> 门禁</td><td>机制 ✅（等价）</td></tr>
+    <tr><td>Material Output▸Target</td><td>同一图配多个执行目标，按环境分流</td><td>env_gate / apply(immediate/restart) / 降级链</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Cycles Only / EEVEE Only 标注 + 近似清单</td><td>能力声明与降级，用户可见约束</td><td>插件 runtime 能力标签 + 平台按目标环境给近似实现或禁用并提示</td><td>设计模式已记录</td></tr>
+    <tr><td>Principled 3.x→5.x 参数集重构</td><td>同名节点参数集 breaking change</td><td>节点 schema 必须带版本号与迁移说明，禁止静默改参数</td><td>设计模式已记录</td></tr>
+    <tr><td>Socket Shape（Single/Field/Grid/Lists）</td><td>数据形态形状系统</td><td>payload 任意类型 + 单值广播语义显式化</td><td>语义 ✅（更宽）</td></tr>
+    <tr><td>`.` 前缀隐藏组 + 命名前缀</td><td>资产可见性管理与命名空间化</td><td>switchable=false 空壳入口 / 市场三类货架命名空间</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Repeat Zone / Menu Switch</td><td>原生循环 zone 与枚举路由</td><td>边回指 + max_steps 步数墙；judge 多分支</td><td>机制 ✅（Zone 封套 演进）</td></tr>
+    <tr><td>禁递归组（DAG 完整性）</td><td>加载时静态检查防环</td><td><code>validate_graph</code> 结构校验（环检测列为演进项）</td><td>部分</td></tr>
+  </table>
+<h4>5.14.6 借鉴 ComfyUI 节点图</h4>
+  <p>ComfyUI 把节点图做成「生产工具」的关键不在单个节点，而在<b>组织术与契约化</b>：强类型连线、无线数据、分组、子图折叠、节点即 Python 类、以及 UI/API 双格式。以下按「官方分类树 → 核心节点 I/O → 数据类型 → 节点契约 → 双格式 → 落地对照」展开。</p>
+
+  <p><b>① 官方节点分类树</b>（CATEGORY 属性，<code>/</code> 分层渲染为树；官方 Node Library 分 Essentials 精选页 + All nodes 全量页）：</p>
+  <table>
+    <tr><th>分类（官方路径）</th><th>代表节点</th></tr>
+    <tr><td>loaders</td><td>CheckpointLoaderSimple / LoraLoader / LoraLoaderModelOnly / VAELoader / CLIPLoader / DualCLIPLoader / ControlNetLoader / UNETLoader / UpscaleModelLoader</td></tr>
+    <tr><td>conditioning（+ /controlnet + /inpaint）</td><td>CLIPTextEncode / ConditioningCombine / ConditioningAverage / ConditioningConcat / ConditioningSetArea / ConditioningSetAreaPercentage / ConditioningSetMask / ConditioningSetTimestepRange / CLIPSetLastLayer / ControlNetApply(+Advanced) / InpaintModelConditioning</td></tr>
+    <tr><td>sampling</td><td>KSampler / KSamplerAdvanced / SamplerCustom / BasicScheduler / KarrasScheduler / SplitSigmas / FlipSigmas 等</td></tr>
+    <tr><td>latent</td><td>EmptyLatentImage / VAEEncode / VAEDecode / VAEEncodeForInpaint / VAEEncodeTiled / VAEDecodeTiled / SaveLatent / LoadLatent / LatentUpscale / LatentUpscaleBy / LatentComposite / LatentBlend / LatentCrop</td></tr>
+    <tr><td>image（+ /upscaling + /mask + /postprocessing）</td><td>LoadImage / SaveImage / PreviewImage / ImageScale / ImageScaleBy / ImageCrop / ImageBatch / ImageUpscaleWithModel / ImageToMask / MaskToImage / ImageCompositeMasked / Blend / ImagePadForOutpainting</td></tr>
+    <tr><td>mask / preprocessors / model_merging / experimental / hypernetworks / lora / gligen / photomaker / controlnet / ip2p / inpaint / freeu / lsf-attention-guidance / custom</td><td>模型合并（ModelMergeSimple/Blocks/SD1/SD2/SDXL）、各类实验与社区扩展分类</td></tr>
+    <tr><td>utility（+ /math + /string + /list + /boolean）</td><td>PrimitiveNode（原语常量）/ Reroute / Note / GetNode / SetNode / 数学 / 字符串 / 列表 / 布尔工具节点</td></tr>
+    <tr><td>clip_vision / sigmas / latent_keyframe / animatediff</td><td>CLIP 视觉编码、sigma 调度表、潜空间关键帧、动画扩散</td></tr>
+    <tr><td>audio / 3D / video / api（外部服务）</td><td>音频编解码 / Load3D / WanImageToVideo 等视频模型 / Kling、Gemini、OpenAI DALL·E、ByteDance 等云端 API 节点</td></tr>
+  </table>
+
+  <p><b>② 核心节点 I/O 明细</b>（官方文档与源码行级归纳；<code>in:</code>=输入，<code>out:</code>=输出；控件=widget，输入=连线）：</p>
+  <table>
+    <tr><th>节点（分类）</th><th>输入</th><th>输出</th></tr>
+    <tr><td>CheckpointLoaderSimple（loaders）</td><td>in: ckpt_name（STRING，文件下拉）</td><td>out: MODEL, CLIP, VAE</td></tr>
+    <tr><td>LoraLoader（loaders）</td><td>in: model(MODEL), clip(CLIP), lora_name(STRING), strength_model(FLOAT), strength_clip(FLOAT)</td><td>out: MODEL, CLIP</td></tr>
+    <tr><td>VAELoader / CLIPLoader / ControlNetLoader / UNETLoader / UpscaleModelLoader（loaders）</td><td>in: vae_name / clip_name+type / control_net_name / unet_name+weight_dtype / model_name（均文件下拉）</td><td>out: VAE / CLIP / CONTROL_NET / MODEL / UPSCALE_MODEL</td></tr>
+    <tr><td>CLIPTextEncode（conditioning）</td><td>in: clip(CLIP), text(STRING，多行+动态提示词)</td><td>out: CONDITIONING</td></tr>
+    <tr><td>ConditioningCombine / ConditioningAverage / ConditioningSetArea / ConditioningSetMask / CLIPSetLastLayer（conditioning）</td><td>in: 两个 conditioning / conditioning+strength / conditioning+width,height,x,y,strength / conditioning+mask(MASK)+strength / clip+stop_at_clip_layer(INT)</td><td>out: CONDITIONING（末者为 CLIP）</td></tr>
+    <tr><td>ControlNetApply（conditioning/controlnet）</td><td>in: conditioning, control_net(CONTROL_NET), image(IMAGE), strength(FLOAT)</td><td>out: CONDITIONING</td></tr>
+    <tr><td>KSampler（sampling）</td><td>in: model(MODEL), positive(CONDITIONING), negative(CONDITIONING), latent_image(LATENT), seed(INT), steps(INT), cfg(FLOAT), sampler_name(COMBO), scheduler(COMBO), denoise(FLOAT)</td><td>out: LATENT</td></tr>
+    <tr><td>KSamplerAdvanced（sampling）</td><td>in: 同上 + start_at_step(INT), end_at_step(INT), add_noise(COMBO), return_with_leftover_noise(COMBO)</td><td>out: LATENT</td></tr>
+    <tr><td>BasicScheduler（sampling）</td><td>in: model, scheduler(COMBO 9 种：normal/karras/exponential/sgm_uniform/simple/ddim_uniform/beta/linear_quadratic/kl_optimal), steps(INT 1-10000), denoise(FLOAT 0-1)</td><td>out: SIGMAS（噪声水平序列）</td></tr>
+    <tr><td>EmptyLatentImage（latent）</td><td>in: width(INT), height(INT), batch_size(INT)</td><td>out: LATENT</td></tr>
+    <tr><td>VAEEncode / VAEDecode / VAEEncodeForInpaint（latent）</td><td>in: pixels(IMAGE)+vae / samples(LATENT)+vae / pixels+vae+mask(MASK)</td><td>out: LATENT / IMAGE / LATENT</td></tr>
+    <tr><td>LatentUpscale / LatentComposite / LatentCrop（latent）</td><td>in: samples+width+height+upscale_method / samples_1+samples_2 / samples+width+height+x+y</td><td>out: LATENT</td></tr>
+    <tr><td>LoadImage（image）</td><td>in: image（上传控件）</td><td>out: IMAGE, MASK</td></tr>
+    <tr><td>SaveImage / PreviewImage（image）</td><td>in: images(IMAGE) + filename_prefix(STRING) / images(IMAGE)</td><td>out: 落盘 / 内嵌预览（OUTPUT_NODE）</td></tr>
+    <tr><td>ImageScale / ImageUpscaleWithModel（image, image/upscaling）</td><td>in: image+width+height+upscale_method / upscale_model(UPSCALE_MODEL)+image</td><td>out: IMAGE</td></tr>
+  </table>
+  <p><b>最小文生图链</b>（官方模板口径）：CheckpointLoader → CLIPTextEncode×2（正/负）→ EmptyLatent → KSampler → VAE Decode → SaveImage；原则：<b>全程留在潜空间，最后才解码一次</b>。</p>
+
+  <p><b>③ 数据类型全表</b>（官方 IO 系统 + 运行时表示 + 槽位色，仅同色可连 = 类型安全）：</p>
+  <table>
+    <tr><th>类型</th><th>运行时表示</th><th>形状/说明</th><th>槽位色（官方主题 hex）</th></tr>
+    <tr><td>MODEL</td><td>ModelPatcher</td><td>扩散模型（UNet）包装，带补丁管理</td><td>薰衣草 #B39DDB</td></tr>
+    <tr><td>CLIP</td><td>sd.CLIP</td><td>文本编码器（SD1/SDXL/SD3 系）</td><td>黄 #FFD500</td></tr>
+    <tr><td>CLIP_VISION</td><td>clip_vision.*</td><td>CLIP 视觉编码器</td><td>青 #A8DADC</td></tr>
+    <tr><td>VAE</td><td>sd.VAE</td><td>变分自编码器（像素↔潜空间）</td><td>玫瑰 #FF6E6E</td></tr>
+    <tr><td>CONDITIONING</td><td>list[tuple[Tensor, dict]]</td><td>编码后提示词 + 池化输出，变长</td><td>橙 #FFA931</td></tr>
+    <tr><td>LATENT</td><td>{"samples": Tensor}</td><td>潜空间张量 NCHW / NCTHW</td><td>粉 #FF9CF9</td></tr>
+    <tr><td>IMAGE</td><td>Tensor [B,H,W,C]</td><td>图像批，float32，值域 [0,1]</td><td>蓝 #64B5F6</td></tr>
+    <tr><td>MASK</td><td>Tensor [B,H,W]</td><td>二值/灰度遮罩，float32</td><td>绿 #81C784</td></tr>
+    <tr><td>CONTROL_NET</td><td>ControlBase</td><td>ControlNet 包装</td><td>薄荷 #6EE7B7</td></tr>
+    <tr><td>STYLE_MODEL</td><td>—</td><td>风格模型</td><td>嫩绿 #C2FFAE</td></tr>
+    <tr><td>UPSCALE_MODEL</td><td>spandrel.ModelDescriptor</td><td>放大模型描述符</td><td>—</td></tr>
+    <tr><td>SAMPLER / SIGMAS / GUIDER / NOISE</td><td>KSampler 包装 / 1D Tensor / Guider / 噪声生成器</td><td>采样专用类型（sigmas=噪声调度表）</td><td>粉肤 #ECB4B4 / 嫩绿 #CDFFCD / 青 #66FFFF / 灰 #B0B0B0</td></tr>
+    <tr><td>INT / FLOAT / STRING / BOOLEAN / COMBO</td><td>Python 原语</td><td>控件型输入；COMBO=下拉枚举</td><td>数字浅绿</td></tr>
+    <tr><td>*（通配）</td><td>任意</td><td>接受任何输入的声明</td><td>—</td></tr>
+  </table>
+
+  <p><b>④ 节点契约（自定义节点 = Python 类，官方 V1 规范五件套 + V3 演进）</b>：</p>
+  <ul>
+    <li><b>五件套类属性</b>：<code>CATEGORY</code>（菜单路径，<code>/</code> 分层）/ <code>RETURN_TYPES</code>（输出类型元组）/ <code>RETURN_NAMES</code>（可选显示名）/ <code>FUNCTION</code>（执行方法名）/ <code>INPUT_TYPES</code>（@classmethod）；可选项 <code>OUTPUT_NODE=True</code> 标记工作流终端（Save/Preview）。缺任何一件即注册静默失败。</li>
+    <li><b>INPUT_TYPES 三段式</b>：<code>required</code>（必连或有值）/ <code>optional</code>（可空）/ <code>hidden</code>（引擎注入，如 UNIQUE_ID、PROMPT）；单项定义 <code>(类型, 选项dict)</code>，选项键：default / min / max / step / display(slider) / multiline / dynamicPrompts / tooltip / forceInput（禁用控件强制连线）/ advanced（折叠进高级区）/ rawLink。</li>
+    <li><b>校验与缓存</b>：<code>VALIDATE_INPUTS</code> 类方法排队前校验（返回错误字符串）；<code>IS_CHANGED</code> 判定结果可否复用；类型校验在 <code>validate_prompt()</code> 阶段完成，连接错误排队前即暴露。</li>
+    <li><b>注册</b>：<code>custom_nodes/</code> 目录自动发现，<code>NODE_CLASS_MAPPINGS</code> + <code>NODE_DISPLAY_NAME_MAPPINGS</code> 双字典（内部名/显示名）。</li>
+    <li><b>V3（Nodes 2.0）演进</b>：<code>DEFINE_SCHEMA</code> + <code>io.ComfyNode</code>/<code>define_schema</code> 声明式 schema、无状态设计（适配进程隔离/分布式）、async 执行、API 版本锁定；前端迁 Vue.js，V2 工作流自动迁移。</li>
+  </ul>
+
+  <p><b>⑤ UI 格式 ↔ API 格式：ComfyUI 官方的「图两态」工业实证</b>（docs.comfy.org/specs/workflow_json，ComfyWorkflow1_0）：</p>
+  <table>
+    <tr><th>态</th><th>结构</th><th>内容</th><th>消费者</th></tr>
+    <tr><td>UI 格式（保存态，高级语言类比）</td><td><code>{version, config, state, groups[], nodes[]}</code></td><td>每节点：id / type / pos(x,y) / size / flags(collapsed,pinned,allow_interaction,horizontal) / order / mode / inputs[]{name,type,link,slot_index} / outputs[]{name,type,links,slot_index} / properties / widgets_values；groups[](title,bounding,color,font_size,locked)</td><td>前端可视化编辑</td></tr>
+    <tr><td>API 格式（执行态，机器码类比）</td><td><code>{"3": {"class_type": "KSampler", "inputs": {...}, "_meta": {...}}}</code></td><td>每节点：class_type + inputs（常量值或 <code>["源节点id", 输出序号]</code> 二元连接）；<b>无坐标、无颜色、无分组</b></td><td>POST /prompt 排队执行</td></tr>
+  </table>
+  <ul>
+    <li>编辑态节点（Note / MarkdownNote / Reroute / PrimitiveNode）在 API 格式中<b>不存在</b>；静音（mode 2）节点被剔除、旁路（mode 4）节点被直连——<b>降级不崩主流程</b>的官方同款做法。</li>
+    <li>官方立场：转换一律走编辑器「导出工作流 (API)」，手转易错——widgets_values 按声明序位置对齐、动态组合展开为点号名（<code>resize_type.width</code>）、数组值须包 <code>{"__value__": [...]}</code>、dynamicPrompts 花括号随机展开在 API 侧才生效、子图展平为 <code>"12:3"</code> 式 id。</li>
+    <li><b>这正是项目 5.14.8「图两态双向编译」的工业级同构</b>：我们的 <code>_normalize_graph</code>（剥坐标、ref 归一）与 ComfyUI 的 Export (API) 做同一件事；我们的 <code>validate_graph</code> 与 <code>validate_prompt()</code> 同为「排队/执行前裁判」。</li>
+  </ul>
+
+  <p><b>⑥ 落地对照表</b>（ComfyUI 元素 → 项目对应 → 状态）：</p>
+  <table>
+    <tr><th>ComfyUI 元素（细分）</th><th>语义</th><th>本项目对应</th><th>状态</th></tr>
+    <tr><td>Node 节点 + Widget 小部件</td><td>节点内嵌控件（下拉 / 滑块 / 文本框）</td><td>params 键值（编辑器属性面板同源编辑）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>Link 连线 + 颜色编码类型安全</td><td>仅同色可连（官方 16+ 槽位色，见③）</td><td><code>validate_graph</code> 静态校验（类型 / 引用 / 语法编译）</td><td>校验 ✅ / 颜色编码 演进</td></tr>
+    <tr><td>连线渲染样式（曲线/直角/直线/隐藏）</td><td>视觉密度可调，成品演示可隐藏连线</td><td>SVG 画布连线</td><td>演进项（视觉）</td></tr>
+    <tr><td>Reroute 原线点</td><td>点击连线圆点添加，整理直角走线，抗 spaghetti</td><td>SVG 画布连线</td><td>演进项（视觉）</td></tr>
+    <tr><td>Get/Set 节点</td><td>无线「beam」数据：Set 命名存储、Get 按名取回，自动色码</td><td>data 字典跨节点直读（如 judge 读 <code>data['k']</code>）</td><td><span class="ok">✅ 等价机制</span></td></tr>
+    <tr><td>Frames / Backdrops 框架</td><td>命名 + 着色 + 可缩放分组</td><td>画布分组</td><td>演进项（视觉）</td></tr>
+    <tr><td>Subgraph 子图</td><td>折叠为超节点：双击编辑、输入/输出插槽（右键重命名/删除）、默认插槽、任意深度嵌套、widgets 提升到子图界面（排序/眼睛显隐/重命名）、Bypass Ctrl+B 旁路、Unpack 拆回节点、Blueprint 发布到节点库（隔离实例）</td><td><code>team_def.graph</code> 引用 agent unit = 团队图上的「超节点」；<code>agent_def.flow</code> = 子图内部；嵌套深度由 schema 允许</td><td>契约 ✅ / 画布折叠 演进</td></tr>
+    <tr><td>节点契约五件套（V1）/ DEFINE_SCHEMA（V3）</td><td>节点即类：输入/输出 schema + 执行方法 + 分类 + 校验钩子</td><td>unit manifest（id/type/form）+ contributions 贡献点 + schema 校验；六类节点各有 params 契约</td><td><span class="ok">✅ 同构已落地</span></td></tr>
+    <tr><td>UI / API 双格式</td><td>一张图两种投影：编辑态（富元数据）与执行态（纯 DAG）</td><td>画布呈现态 ↔ node_graph 契约态双向编译</td><td><span class="ok">✅ 同构已落地</span></td></tr>
+    <tr><td>IO 节点</td><td>特殊输入输出节点</td><td><code>entry</code> / <code>exit</code></td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>Templates / Blueprints / Workflows 三形态</td><td>乐高类比：基础砖（nodes）/ 小组装（blueprints）/ 成品（templates）</td><td><code>form</code>: template/instance + 市场三类货架（plugin/agent/team）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>10 秒可读性原则</td><td>组织良好的图应 10 秒内可读，便于调试与协作</td><td>编辑器模板 minimal（3 节点）+ encyclopedia（13 节点）即按此设计</td><td><span class="ok">✅ 方法论已采纳</span></td></tr>
+  </table>
+
+    <p><b>⑦ 执行引擎机制</b>（ComfyUI 把「图即引擎」做成生产级调度器的内核，项目 GraphRuntime 的演进参照；来源：execution.py / comfy_execution/graph.py + docs.comfy.org）：</p>
+  <table>
+    <tr><th>机制</th><th>官方做法</th><th>对项目的可借鉴点</th></tr>
+    <tr><td>中央队列 PromptQueue</td><td>heapq pending 队列（按优先级/时间排序）+ running + history；POST /prompt 带 <code>front</code>（插队首）/ <code>number</code>（优先级）</td><td>图执行请求排队 + 优先级 + 历史回溯</td></tr>
+    <tr><td>专用 worker 线程</td><td>prompt_worker 线程取 prompt → execute_async → task_done → <code>soft_empty_cache()</code> 清 VRAM/GC，循环</td><td>HTTP 事件循环与重计算隔离（项目 AskLimiter 同思路）</td></tr>
+    <tr><td>拓扑溶解调度器 ExecutionList</td><td>节点三态 staged（准备执行）→ unstaged（退回 pending 并附加新依赖）→ completed；执行中可追加依赖</td><td>图运行时可动态挂载新节点/新依赖</td></tr>
+    <tr><td>懒链接 → 强链接</td><td>默认所有输入链接是「懒」的不阻塞执行；节点通过 <code>check_lazy_status()</code> 显式请求某输入，该链接才变「强」并阻塞</td><td><b>条件分支/短路求值的干净抽象</b>——judge 未请求的输入可以不求值</td></tr>
+    <tr><td>UX 友好的节点挑选顺序</td><td>多个节点就绪时：① OUTPUT_NODE 节点 → ② async 节点 → ③ 直接阻塞输出节点的节点 → ④ 间接阻塞的 → 默认取 ready 第一个</td><td>预览/输出类节点优先，缩短感知时长</td></tr>
+    <tr><td>部分执行</td><td>UI：选中输出节点点播放按钮只跑该分支；API：<code>partial_execution_targets</code>（节点 ID 数组）；README 原话「Only re-executes the parts of the workflow that changes」</td><td>图调试从任一节点起跑，不必全图重跑</td></tr>
+    <tr><td>Mute vs Bypass</td><td>Mute（Ctrl+M）跳过节点且无输出；Bypass（Ctrl+B）相当于从图中移除该节点、输入直通输出</td><td>「降级不崩主流程」的画布级操作原语</td></tr>
+    <tr><td>节点展开（Node Expansion）</td><td>V3 节点 <code>enable_expand=True</code>，execute 返回 <code>io.NodeOutput(ref, expand=graph.finalize())</code>，用 GraphBuilder 运行时动态注入子图（如 Repeat N 次 KSampler 的宏节点），每个子节点独立缓存</td><td><b>宏节点的运行时编译</b>——执行期动态子图注入</td></tr>
+    <tr><td>多级可插拔缓存</td><td>Classic（HierarchicalCache，可持久化）/ LRU / RAM Pressure（按可用 RAM 动态调整）/ Null（关闭）；<code>fingerprint_inputs</code>（V3）/ <code>IS_CHANGED</code>（V1）返回与上次相同 → 不重跑；<code>not_idempotent=True</code> 永不缓存</td><td>节点级缓存 + 输入指纹 + 逃生门</td></tr>
+    <tr><td>缓存命中对客户端可见</td><td>WS <code>execution_cached</code> 消息带 nodes 数组（被复用缓存输出的节点 ID），UI 可灰显</td><td>「哪些节点没跑」必须显式通告，不玩黑魔法</td></tr>
+    <tr><td>执行前验证错误 10 种</td><td>required_input_missing / bad_linked_input / return_type_mismatch / invalid_input_type / value_smaller_than_min / value_bigger_than_max / value_not_in_list / custom_validation_failed / prompt_no_outputs / 节点存在性</td><td>结构化、可本地化的校验协议（项目 validate_graph 同思想）</td></tr>
+  </table>
+  <p><b>⑧ API 全表</b>（本地服务器默认 127.0.0.1:8188；项目画布调试面板可对标）：<code>POST /prompt</code>（提交工作流：prompt 节点字典 + client_id + extra_data + front + number + partial_execution_targets；响应 prompt_id/number/node_errors）· <code>GET /prompt</code>（队列状态）· <code>GET/POST /queue</code>（查看/clear/delete）· <code>POST /interrupt</code>（中断当前执行）· <code>POST /free</code>（释放显存）· <code>GET /history</code> + <code>GET /history/{prompt_id}</code>（执行历史与结果）· <b><code>GET /object_info</code>（全部已注册节点 schema 内省——前端据此动态发现节点）</b> + <code>/object_info/{class_type}</code>（COMBO 型输入的 options 即该机实际模型文件名枚举）· <code>GET /system_stats</code> · <code>GET /models/{folder}</code> · <code>GET /view</code>（读文件，有路径穿越防护）· <code>POST /upload/image</code> · <code>GET /features</code>（feature flags 能力协商）· <code>/global_subgraphs</code>（各自定义节点目录 subgraphs/*.json 汇总下发）· WebSocket <code>/ws?clientId=</code>。WS 消息（server→client）：<code>status</code> / <code>execution_start</code> / <code>executing</code>（node 为 null = 整个 prompt 执行完毕）/ <code>executed</code>（仅需更新 UI 时发）/ <code>progress</code>（value/max）/ <code>execution_cached</code>（缓存命中跳过列表）/ <code>execution_success</code> / <code>execution_error</code> / <code>execution_interrupted</code>（带已执行节点列表）；二进制帧 4 字节大端类型头（1=PREVIEW_IMAGE / 3=TEXT / 4=PREVIEW_IMAGE_WITH_METADATA）；<b>client_id 定向推送</b>防跨客户端串扰 + feature flags 协商保证协议演进不破坏旧客户端。</p>
+  <p><b>⑨ App Mode = 同后端的视图层封装</b>（官方定位原话：跑在同一实例/同一后端/同一队列上，工作流本身不变，变的只是交互面）：App Builder 四步——Inputs（画布选输入节点：图像上传/文本/模型选择）→ Outputs（选展示输出）→ Preview → Set default view；前端 1.41.13+ 正式支持；分享 URL 内编码完整配置（仅 Comfy Cloud）。对项目的启示：<b>「同一契约态、多种呈现态」</b>——团队图的「应用态」（只暴露输入/输出）与「编辑态」（全图画布）可共享同一 node_graph。</p>
+  <p><b>⑩ Subgraph Blueprint 目录约定</b>（零代码分发可复用子图）：自定义节点目录下建 <code>subgraphs/</code> 文件夹放入 <code>.json</code>（格式与工作流 JSON 相同），ComfyUI 扫描所有自定义节点目录并通过 <code>/global_subgraphs</code> API 下发，用户从子图菜单直接添加。Subgraph 与 Group 的本质差异（官方演进叙事）：Group 仅是半透明视觉框、无 I/O 插槽、不可作为可复用节点单元；Subgraph 从头重建、带完整 Input/Output 的「超级节点」，未来既有 group 会被自动替换（时间表需核实）。插槽规则：默认插槽（标号 1）用于新增暴露连接、内部端口连到默认插槽自动生成对外 slot、同色才通；Widget 发布=内部 widget 连到子图内 Inputs 节点即提升为子图级控件；参数面板（v0.3.66+）可排序/切可见性；同一子图所有实例共享编辑、clone 后可独立编辑；UI 格式中定义存 <code>definitions.subgraphs</code>、实例节点 type 为 UUID；API 格式导出时<b>展平</b>到顶层。</p>
+  <p><b>⑪ 虚拟节点透明重写（Get/Set）</b>：Get/Set 的 Python 类只是桩，真实行为在前端 <code>get_set.js</code>，每实例标记 <code>isVirtualNode=true</code>，<b>prompt builder 在送后端前将其剥离</b>；Get 覆写 <code>getInputLink/getInputNode</code> 使上游遍历直达配对的 Set；两侧通配类型 <code>*</code>，靠 STRING <code>name</code> 精确匹配（大小写敏感）；导出 JSON 含<b>已解析的真实连接</b>（透明重写，无隐藏运行状态）。Reroute/Note/PrimitiveNode 同为「仅编辑器存在、导出即消失」的标注层。这是「命名引用编译成显式边」的编译期去语法糖模式。</p>
+  <p><b>⑫ V1→V3 契约演进</b>（对应项目 manifest 版本化）：V3 = <code>io.ComfyNode</code> 子类全 classmethod 无状态（执行前 sanitized）+ <code>define_schema</code> 收敛全部契约 + 固定名 <code>execute</code> + <code>io.NodeOutput</code> 返回 UI 数据。io.Schema 全字段：node_id（必填全局唯一，建议 <code>Author_NodeAction</code> 前缀）/ display_name / category（<code>/</code> 分层，<code>_</code> 前缀隐藏出菜单）/ description / inputs / outputs / hidden / search_aliases / is_output_node / is_input_list / is_deprecated / is_experimental / is_dev_only / is_api_node / <b>not_idempotent（永不缓存）</b> / accept_all_inputs / <b>enable_expand（动态子图）</b> / price_badge 等。输入类型速查：<code>("INT",{default,min,max,step,display})</code> → <code>io.Int.Input(...)</code>；<code>(["a","b"],)</code> → <code>io.Combo.Input(options=[...])</code>；自定义类型 → <code>io.Custom("my_type").Input(...)</code>；隐藏值枚举 unique_id/prompt/extra_pnginfo/dynprompt/auth_token_comfy_org。高级模式：<code>io.DynamicCombo.Input</code>（动态组合，API 格式展开为点号名 <code>resize_type.width</code>）、<code>io.MatchType.Template</code> 泛型同构吸附、<code>io.Autogrow.TemplatePrefix</code> 输入随连接增长、<code>io.NodeOutput(block_execution="reason")</code> 阻断下游、<b><code>io.NodeReplace</code> 旧工作流按 widget 位置 + 输入/输出映射自动迁移</b>。注册表分发：pyproject.toml 双段式（<code>[project]</code> name 即注册表唯一标识发布后不可变 + <code>[tool.comfy]</code> PublisherId/DisplayName/Icon）；兼容性分层 requires-python / comfyui-frontend-package / requires-comfyui；<b>安全三层扫描（eval()/exec() 检测、subprocess pip 安装检测、代码混淆检测）</b>；已发布版本不可变只能 deprecate + 发新版；<b>工作流 JSON 锁定节点包名 + PublisherId + 精确版本保证可复现</b>——这正是项目 units.lock 账本 + min_platform + dependencies 三重门禁的同构。</p>
+  <p><b>⑬ 模型管理</b>：「<b>模型即外部资源，节点只存名字</b>」——CheckpointLoaderSimple 输入 <code>ckpt_name</code> 为 COMBO（枚举 <code>models/checkpoints/</code> 及 extra_model_paths.yaml 路径下全部文件），输出三线 MODEL（去噪 UNet）/ CLIP（文本编码器）/ VAE（图像↔latent 编解码）；工作流 JSON 里只有文件名字符串，可复现性靠文件名 + 模型哈希（生产管线建议另行 pin 哈希）；运行中新增模型需刷新浏览器才进下拉。对项目的启示：重资源（模型/语料/凭证）不进契约态，节点只存引用名 + 版本约束。</p>
+
+  <h4>5.14.7 嵌套图：Agent 内部图 + 团队图</h4>
+  <p>团队与成员各自持有独立 profile，图则展示他们「虽然独立却相互联系」的关系——<b>联系的是数据流，不是状态池</b>：</p>
+  <table>
+    <tr><th>层</th><th>契约位置</th><th>图内容</th><th>profile</th></tr>
+    <tr><td>单 Agent 内部图</td><td><code>agent_def.flow</code>（或顶层 <code>node_graph</code>）</td><td>该 Agent 的私有流程（如 encyclopedia 13 节点图）</td><td><code>agent_def.home_profile</code> 独立 HOME，五维隔离</td></tr>
+    <tr><td>团队图</td><td><code>team_def.graph</code></td><td>成员间的编排：节点引用成员 Agent unit（<code>ref</code>=agent id），边表达协作流向</td><td>团队自身 profile（额外持协作规则 <code>team_def.policy</code>）</td></tr>
+  </table>
+  <ul>
+    <li><b>每 Agent 一张、每团队一张</b>：成员内部图互不重叠；团队图独立存在。两层都在同一份 schema 内，无第二套图格式。</li>
+    <li><b>引用非拷贝</b>：团队图节点 <code>ref</code>=agent id，运行时经 <code>UnitRegistry</code> 解析——与 Blender Instance、ComfyUI Subgraph 引用同思想，改一处定义、所有引用点生效。</li>
+    <li><b>隔离保联系</b>：成员各自的配置 / 记忆 / 会话 / 凭证在各自 profile 目录内，团队图只在节点间传 payload 与读 data——协作不污染状态。</li>
+    <li><b>当前状态</b>：两层契约已随 schema 冻结（P0/P6），单 Agent 图执行已由 P3 落地并真实测试验收；团队图的解释执行与画布折叠编辑为演进项（P8）。</li>
+  </ul>
+
+  <h4>5.14.8 图 ↔ 可执行格式：双向编译与动态同步</h4>
+  <p>图不直接被执行（画布带坐标，机读不了），契约态也不直接给人读（无坐标无分组）——两者互为投影，经「编译器 / 反编译器 / 解释器」闭环，类比机器语言与高级语言的关系：</p>
+  <table>
+    <tr><th>层</th><th>语言类比</th><th>项目形态</th><th>消费者</th></tr>
+    <tr><td>呈现态（画布）</td><td>高级语言（人写）</td><td>editor.js SVG 画布：节点带坐标 / 颜色 / 视觉分组</td><td>人</td></tr>
+    <tr><td>契约态（node_graph）</td><td>汇编 / 字节码（机读）</td><td>schema 约束的规范 JSON：无坐标、ref 归一、结构可校验</td><td>机器</td></tr>
+    <tr><td>运行态（GraphRuntime）</td><td>机器语言执行</td><td>解释器按图步进：payload 流动 + data 累积 + judge 选边</td><td>CPU</td></tr>
+  </table>
+  <table>
+    <tr><th>方向</th><th>实现（editor.py / graph.py）</th><th>作用</th></tr>
+    <tr><td><b>编译</b>（画布 → 契约态）</td><td><code>_normalize_graph</code>（幂等：剥 <code>x/y</code>、<code>params.ref</code> 提升为节点级 <code>ref</code>）→ <code>validate_graph</code>（结构 + 引用 + expr/condition <code>compile()</code> 语法检查，<b>不求值</b>）→ <code>export_unit</code>（schema 复检 + zip 打包，「导出即上架格式」）</td><td>防画出一张跑不起来的图；产出人读、版本 diff、再导入都不迷路的规范形状</td></tr>
+    <tr><td><b>反编译</b>（契约态 → 画布）</td><td><code>GET /api/editor/templates</code> 返回 minimal 三节点 + encyclopedia 13 节点图；市场安装的 unit 其 node_graph 同格式，可在画布加载继续编辑</td><td>契约态随时可回到人面前改</td></tr>
+    <tr><td><b>解释执行</b></td><td><code>GraphRuntime.execute(graph, input_data)</code> 返回 <code>{result, outputs, data}</code></td><td>契约态即一等输入，无额外编译层——「图即引擎」</td></tr>
+  </table>
+  <p><b>动态同步（一方变化，另一方调整）</b>：</p>
+  <ul>
+    <li>画布变化 → <code>validate</code> 即时错误列表：结构漂移当场暴露（P7 修复的 ref 三处漂移——运行时读节点级、校验器读 <code>params.ref</code>、编辑器发 <code>params.ref</code>——正是这套机制逼出并锁定的）；</li>
+    <li>契约态变化（市场装新版本 / 改 manifest）→ 编辑器重新加载渲染，画布与契约重新对齐；</li>
+    <li>归一化<b>幂等</b>保证双向转化不丢语义：两种 ref 形状运行时都认，导出只留规范形状；</li>
+    <li>validate 与运行时读同一份 <code>_norm_type</code> 别名表与 ref 双位置规则——<b>同一个裁判</b>，不会「校验过却跑不了」。</li>
+  </ul>
+
+    <p><b>文本化图格式：契约态的「图即代码」先例</b>（「Text in, diagram out」——声明式文本 → 渲染，与「契约态 → 呈现态」同构；四格式对比）：</p>
+  <table>
+    <tr><th>维度</th><th>Mermaid</th><th>D2</th><th>Graphviz DOT</th><th>PlantUML activity</th></tr>
+    <tr><td>图类型声明</td><td><code>flowchart TD</code> / <code>graph LR</code></td><td>隐式图；<code>direction: right</code></td><td><code>digraph</code> / <code>graph</code>（可 <code>strict</code>）</td><td><code>@startuml</code> 内隐式活动图</td></tr>
+    <tr><td>节点/边</td><td><code>id[text]</code>；<code>--&gt;</code> / <code>==&gt;</code> / <code>---</code>；链式 <code>A--&gt;B&amp;C</code></td><td><code>key: Label</code>；<code>a-&gt;b: label</code>；点路径 <code>a.b.c</code></td><td><code>node [attr]</code>；<code>A-&gt;{B C}</code> 展开全连接</td><td><code>:action;</code> 定义序隐式串联；<code>-down-&gt;</code> 等方向箭头</td></tr>
+    <tr><td>形状词表</td><td>30+ 语义形状（v11.3.0 统一语法 <code>A@{ shape: rect }</code>）</td><td><code>shape:</code> 30+ 含 sql_table / class / sequence_diagram 专用形状</td><td><code>shape=box/diamond/cylinder/record</code>；HTML-like labels</td><td>少量变体（竖条/斜箭头）</td></tr>
+    <tr><td>子图/容器</td><td><code>subgraph id [title]...end</code> 可嵌套、可覆写 direction</td><td>容器点路径或嵌套 map，一等层级</td><td><code>subgraph cluster_x{}</code>（cluster 是布局引擎约定，非 DOT 语言本身）</td><td><code>group...end group</code>；<code>partition</code> 泳道 <code>|Lane|</code></td></tr>
+    <tr><td>布局引擎</td><td>dagre / ELK（v12.0.0 起默认 ELK）</td><td>dagre（默认）/ ELK（端口+正交路由）/ TALA（架构向）</td><td>dot / neato / fdp / sfdp / circo / twopi / osage</td><td>自研布局</td></tr>
+    <tr><td>并行表达</td><td>无活动图级 fork/join</td><td>无显式 fork/join</td><td>无（靠 rank/边）</td><td><b>fork/fork again/end fork</b>（同步条）/ <code>end merge</code></td></tr>
+    <tr><td>结构化控制</td><td>无（靠节点人工拼）</td><td>无</td><td>无</td><td><b>一等公民</b>：if/then/else/endif、switch/case、while/endwhile、repeat/repeat while、start/stop、detach、kill、break、label/goto（实验性）</td></tr>
+  </table>
+  <pre><code># Mermaid（flowchart + 循环 + subgraph + classDef）
+flowchart TD
+  Start([开始]) --> Init["i = 0, sum = 0"]
+  Init --> Cond{i < n?}
+  Cond -- 是 --> Body["sum = sum + i"]
+  Body --> Step["i = i + 1"]
+  Step --> Cond
+  Cond -- 否 --> Out[/输出 sum/]
+  subgraph LoopBox["循环体"]
+    Body
+    Step
+  end
+
+# D2（容器 + sql_table + ELK 布局）
+vars: { d2-config: { layout-engine: elk } }
+direction: right
+client: Client { shape: person }
+api: HTTP API { router: Router; handlers: Handlers }
+users: { shape: sql_table; id: int { constraint: primary_key } }
+client -> api.router: HTTP request
+
+# DOT（digraph + rankdir + cluster）
+digraph G {
+  rankdir=TB;
+  Start -> Init [label="i=0"];
+  Cond -> Body [label="true"];
+  Cond -> Out [label="false"];
+  Body -> Init;
+  subgraph cluster_loop { label="循环体"; Body; Step; }
+}
+
+# PlantUML activity beta（结构化控制 + 泳道 + fork）
+@startuml
+|Customer|
+start
+:提交订单;
+|System|
+if (合法?) then (yes)
+  fork
+    :检查库存;
+  fork again
+    :验证支付;
+  end fork
+  |Warehouse|
+  :拣货打包;
+else (no)
+  :返回错误;
+  detach
+endif
+stop
+@enduml</code></pre>
+  <p><b>四格式对项目的分工启示</b>：Mermaid/D2/DOT 适合做 node_graph 的<b>人类可读序列化</b>（进 git diff、贴 issue、文档内嵌）；PlantUML activity 的结构化控制关键字（if/while/fork/partition）证明「控制流可以文本化且可 round-trip」；布局引擎可插拔（契约态不含几何，同一切换 dagre/ELK）印证 5.14.1 思想三「呈现态可弃可重算」。</p>
+  <p><b>图 → 码两阶段编译的文献实证</b>（运行态侧素材）：FC2Code（EMNLP Findings 2022）两阶段——结构识别算法（流程图→含 while/if 约定的伪代码）+ 代码生成模型（伪代码→代码），BLEU 55.68 vs Transformer 44.05；FloCo-T5（2023）11,884 张流程图数据集，数字集 BLEU 67.4 / CodeBLEU 75.7。路线「<b>图 → 结构化中间表示 → 目标代码</b>」正是「画布态 → 契约态 → 运行态」三段式的文献同构；结构识别算法（循环检测、判定树归约）即契约态构建算法的研究对象。</p>
+  <p><b>可借鉴设计模式精选</b>（本轮四源深挖新增，均已在前文各节展开）：三结构最小内核（其余结构均为导出糖）· 测试位属性化 <code>test_position</code> · 多路选择=判定树（单菱形出口 ≤3）· guard 边互斥完备约束（至多一条 else）· 不变量挂回边切点 · token 点火语义（fork 复制/join 同步/merge 直通）· fork 用 join 闭合、decision 用 merge 闭合 · 双终止节点 · 泳道=责任元数据 · 文本=契约渲染=呈现 · 形状即语义 · 布局引擎可插拔 · 层级容器一等公民 · 逃生舱显式化而非糖化 · GCL 卫哨命令集 · ID 稳定+坐标分离 · shadow 默认值节点 · 类型化连接器 · 懒链接→强链接 · 输入指纹缓存 + not_idempotent 逃生门 · 缓存命中显式通告 · 能力声明与降级（Cycles Only 式标注）· 多后端 Target 分流 · 版本化参数集 + NodeReplace 自动迁移 · 注册表安全扫描 + 版本不可变 + 工作流锁版本 · 模型即外部资源节点只存名字。</p>
+
+    <h4>5.14.9 四源元素穷尽映射总表（一个字不落）</h4>
+  <p>本节是对 5.14.1–5.14.8 全部案例元素的<b>穷尽式映射审计</b>：每一个元素——包括表面看起来与 AI 编排无关的——都必须找到它在 PyPedia 的一一对应，不允许「看透了用不上」式跳过。确不采纳的也列入表 F 并记录理由与「未来什么条件下重新考虑」。状态标记：<span class="ok">✅ 已落地</span>（代码中存在）/ <b>等价</b>（不同形式同一语义）/ <b>更宽</b>（我们机制覆盖且更通用）/ <b>演进</b>（P8 或后续）/ <b>模式</b>（设计模式已记录未实现）/ <b>不采纳</b>（见表 F 理由）。</p>
+
+  <p><b>表 A：ISO 5807 符号与控制结构元素映射</b>（22 符号全项 + 控制结构细分全项 + 理论元素）：</p>
+  <table>
+    <tr><th>#</th><th>案例元素（原子）</th><th>PyPedia 映射</th><th>状态</th></tr>
+    <tr><td>A1</td><td>起止符号（椭圆/圆角）</td><td><code>entry</code> / <code>exit</code> 节点</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A2</td><td>过程符号（矩形，一框一步）</td><td><code>process</code> / <code>plugin</code> / <code>model-call</code> 节点</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A3</td><td>判断符号（菱形，唯一多出口）</td><td><code>judge</code> 节点（出边带 condition）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A4</td><td>流向箭头（自上而下自左而右）</td><td><code>edges[].from/to</code>；画布默认自上而下流向</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A5</td><td>输入输出（平行四边形，数据跨界）</td><td>entry 注入 payload / exit 捕获结果；外部数据经 <code>input_data</code> 入图</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A6</td><td>文档符号（底波矩形）</td><td>知识库文档摄入（ingest 多格式解析）；引用溯源 F5 展示来源文档</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A7</td><td>多文档符号</td><td>批量文档摄入（ingest 目录/批量导入）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A8</td><td>人工输入（顶翘矩形）</td><td>human-in-the-loop：judge 条件挂「等待人工确认」标志位，流程暂停待输入（机制可由 data 标志 + 人工回复接口表达）</td><td><b>模式</b></td></tr>
+    <tr><td>A9</td><td>显示符号（底弧矩形）</td><td>前端展示层：引用溯源面板 F5、成本/token 面板 F7</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A10</td><td>人工操作（梯形）</td><td>人工审批/复核任务：python-encyclopedia 图的二审节点 <code>v(review)</code> 即「人审占位」</td><td><b>等价</b></td></tr>
+    <tr><td>A11</td><td>预定义过程（两侧双线矩形，子程序引用）</td><td><code>plugin</code> 节点 <code>ref</code>=unit id；团队图节点 ref=agent id——「引用别处定义」原样落地</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A12</td><td>延迟符号（半圆矩）</td><td>cron 定时自动化（P4）：到点触发图执行</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A13</td><td>准备符号（六边形）</td><td>entry 节点初始化：注入 payload、建立 data 上下文</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A14</td><td>汇流（倒三角，多流合一）</td><td>多入边汇合：data 字典天然汇合各上游输出，节点按 id 索引读取</td><td><b>等价</b></td></tr>
+    <tr><td>A15</td><td>或汇流（任一输入到即走）</td><td>judge 条件分支已覆盖选择语义；并行「任一先到」场景见 A40 演进</td><td><b>演进</b></td></tr>
+    <tr><td>A16</td><td>和汇流（全部输入到才走）</td><td>Join 语义（对应 UML Join）：并行扇出后等待全部完成，P8 并行机制落地时同步实现</td><td><b>演进</b></td></tr>
+    <tr><td>A17</td><td>循环界限符号</td><td>Zone 封套（演进）；当前由回指边 + <code>max_steps=1000</code> 步数墙表达循环边界</td><td><b>等价</b></td></tr>
+    <tr><td>A18</td><td>页内连接器（小圆标字母，免长线）</td><td>回指边（to 指向更早节点）——图内「跳转」不用画长线</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A19</td><td>页间连接器（五边形，标页码）</td><td>嵌套图两层引用：<code>agent_def.flow</code> ↔ <code>team_def.graph</code> 跨图引用</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A20</td><td>注释符号（大括号，挂注任意符号）</td><td>画布 Note 标注节点（P8 视觉增强项）</td><td><b>演进</b></td></tr>
+    <tr><td>A21</td><td>数据库符号（圆柱）</td><td>profile 五维目录 + 知识库（LanceDB 向量库 + FTS5）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A22</td><td>直接存取存储</td><td>Mem0 长期记忆（随机存取、语义检索）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A23</td><td>静态存储（三角）</td><td>规则库（rule-engine）+ 技能库（Voyager skill）——只读复用</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A24</td><td>五条绘制规则（一致性/简洁性/方向/选符/颜色≤4-5）</td><td>画布规范：同形同义（六类节点各一形状）；单图 ≤20 节点（模板 minimal 3 + encyclopedia 13 示范）；流向自上而下；判断必须 judge 节点；色板收敛（见表 C 色板定稿）</td><td><b>等价</b></td></tr>
+    <tr><td>A25</td><td>顺序结构</td><td>无 condition 边，取第一条出边</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A26</td><td>if-else 双分支</td><td>judge 双出边 + 互斥 condition，汇合即同指一节点</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A27</td><td>单分支 if</td><td>judge + fallback 空 condition 边</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A28</td><td>switch-case（判定链/判定树）</td><td>多级 judge 链式嵌套；validate 建议单 judge 出口 ≤3（规范项）</td><td><b>等价</b></td></tr>
+    <tr><td>A29</td><td>while（前测试循环）</td><td>judge 置于环口 + 回指边；条件假即跳过循环体</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>A30</td><td>do-while / repeat-until（后测试）</td><td>循环体在前、judge 在后 + 回指边；契约态需在 judge 参数固化 <code>test_position: pre|post</code>（画布↔代码无损互转的前提）</td><td><b>等价</b>（test_position 为契约预留字段）</td></tr>
+    <tr><td>A31</td><td>for（初始化/条件/步进三段）</td><td>初始化 process 节点 + judge + 步进 process 节点显式入图——步进不可省，省即成死循环（max_steps 兜底）</td><td><b>等价</b></td></tr>
+    <tr><td>A32</td><td>guarded if（GCL 卫哨命令集）</td><td>judge 多出边 condition 集：任选一真；全假的兜底规则见 A33</td><td><b>等价</b></td></tr>
+    <tr><td>A33</td><td>GCL abort（全假即中止）</td><td>差异决策：GCL 全假 abort，我们取第一条兜底边（更宽容，防流程卡死）——画布规范要求 judge 必须留一条空 condition 兜底边</td><td><b>等价</b>（兜底策略差异化）</td></tr>
+    <tr><td>A34</td><td>guarded do（GCL 循环）</td><td>回指边 + judge 条件集；退出时所有 guard 为假的语义由 condition 集合保证</td><td><b>等价</b></td></tr>
+    <tr><td>A35</td><td>嵌套循环（各切一刀各贴不变量）</td><td>嵌套 judge/回指；每层回边切入点可挂断言属性（预留）</td><td><b>等价</b></td></tr>
+    <tr><td>A36</td><td>循环不变量（Floyd cut-point）</td><td>契约预留：边/节点可携带 <code>assert</code> 断言属性（前置/后置/不变量），运行时求值前检查——「边携带断言」的直接契约设计</td><td><b>演进</b></td></tr>
+    <tr><td>A37</td><td>Hoare 三义务（{I∧b}S{I} / I∧¬b⇒Q / 界函数）</td><td>契约断言三件套（不变保持/出口充分/终止性）随 A36 一并预留</td><td><b>演进</b></td></tr>
+    <tr><td>A38</td><td>goto 论战「受限具名跳转」结论</td><td>回指边 + judge 多出口 = 画布上的「受限 goto」：结构化默认（顺序链）+ 显式逃生舱（回指与多出口须显式画）</td><td><b>等价</b></td></tr>
+    <tr><td>A39</td><td>Knuth「程序计数器单循环」反证</td><td>理论注记：任何程序可压平为单循环——反证我们的图不需要引入裸 goto；三结构+回边已是最小完备</td><td><b>模式</b></td></tr>
+    <tr><td>A40</td><td>UML token 点火语义（Petri 网）</td><td>GraphRuntime 步进模型：节点在其入边 token（payload）到达时执行——已内置同语义</td><td><b>等价</b></td></tr>
+    <tr><td>A41</td><td>UML Fork / Join（并行分叉/汇合）</td><td>P8 并行机制：judge 出边多触发 + Join 等待全部（或汇流/和汇流的运行时落地）</td><td><b>演进</b></td></tr>
+    <tr><td>A42</td><td>UML Merge（直通不同步）</td><td>data 字典汇合即 Merge 语义（不等待、直通）；「禁止用 merge 闭合 fork」铁律写入画布规范</td><td><b>等价</b></td></tr>
+    <tr><td>A43</td><td>UML Decision guard 互斥完备（至多一条 else）</td><td>judge 出边 condition 互斥 + 一条空 condition 兜底；validate_graph 预留互斥性静态检查</td><td><b>等价</b></td></tr>
+    <tr><td>A44</td><td>双终止节点（Activity final 杀全部 vs Flow final 灭本支）</td><td>exit 节点 = Activity final（终止全图）；「分支提前终止」语义预留（judge 特殊出边直通 exit）</td><td><b>演进</b></td></tr>
+    <tr><td>A45</td><td>泳道（责任分区，跨区=移交）</td><td>团队图责任分区：<code>team_def.policy</code> 声明成员职责域；跨 Agent 边即责任移交——与团队图节点引用成员 Agent 同思想</td><td><b>等价</b></td></tr>
+    <tr><td>A46</td><td>N-S 盒图（禁 goto 子集投影）</td><td>画布「盒图视图」：流程图的受约束投影（禁回指边子集），供教学与审查态；全图画布为超集</td><td><b>演进</b></td></tr>
+    <tr><td>A47</td><td>10 秒可读性原则</td><td>模板设计原则：minimal（3 节点）+ encyclopedia（13 节点）即按可读性设计</td><td><span class="ok">✅ 已落地</span></td></tr>
+  </table>
+
+  <p><b>表 B：Blender 几何节点元素映射</b>（分类树/Fields/Zone/Group/编辑器/版本演进全项）：</p>
+  <table>
+    <tr><th>#</th><th>案例元素（原子）</th><th>PyPedia 映射</th><th>状态</th></tr>
+    <tr><td>B1</td><td>Group Input / Group Output</td><td><code>entry</code> / <code>exit</code> 节点（组的进出口边界）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>B2</td><td>Node（一节点一职责）</td><td>六类节点：entry/exit/process/plugin/model-call/judge</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>B3</td><td>Socket 三态（圆/菱/菱加点）</td><td>payload 边=单值流；condition/expr 挂边运行时求值；position=视觉属性——三态语义等价落地</td><td><b>等价</b></td></tr>
+    <tr><td>B4</td><td>Link 连线（字段虚线/单值实线/错配红实线）</td><td><code>edges[]</code>；画布连线视觉编码（虚实/红错）为 P8 项</td><td><b>演进</b></td></tr>
+    <tr><td>B5</td><td>Node Group（折叠子树=函数）</td><td>unit 引用（plugin ref=unit id；团队图 ref=agent id）；图可导出为 unit（export_unit）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>B6</td><td>Interface Panels / Panel Toggle</td><td>manifest <code>contributions</code> 分组（tools/system_prompt_sections/rules/ui_panels/seams）+ 布尔开关控显隐</td><td><b>等价</b></td></tr>
+    <tr><td>B7</td><td>Field（懒求值+上下文+Capture 缓存）</td><td>condition/expr 运行时求值（不到不求值原则）+ data 字典按节点 id 固化中间值（Capture 等价物）</td><td><b>等价</b></td></tr>
+    <tr><td>B8</td><td>Attribute + 属性域</td><td>data 字典（「域」= 节点 id 命名空间）</td><td><b>等价</b></td></tr>
+    <tr><td>B9</td><td>Selection（布尔字段选元素）</td><td>judge condition 选分支</td><td><b>等价</b></td></tr>
+    <tr><td>B10</td><td>Simulation Zone（状态逐帧传递/禁读未来）</td><td>data 字典=跨迭代状态载体；「禁读未来」由单遍顺序执行天然保证；Zone 显式封套为演进项</td><td><b>等价</b></td></tr>
+    <tr><td>B11</td><td>Repeat Zone（Iterations 运行时决定）</td><td>回指边 + max_steps；迭代次数由 params/条件驱动（运行时决定同语义）</td><td><b>等价</b></td></tr>
+    <tr><td>B12</td><td>Foreach Zone（逐元素执行）</td><td>批量 payload 遍历：列表 payload + 回指边逐项处理（模式已记录；专用遍历封套演进）</td><td><b>演进</b></td></tr>
+    <tr><td>B13</td><td>Instances（引用复用非拷贝）</td><td>双注册表引用 unit（UnitRegistry+PluginRegistry，装得上看得见不拷代码）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>B14</td><td>Switch Node（条件二选一）</td><td>judge 双分支（encyclopedia 图二审 v / 跳过 m）</td><td><b>等价</b></td></tr>
+    <tr><td>B15</td><td>Frame 框架（视觉分组）</td><td>画布视觉分组容器（P8）</td><td><b>演进</b></td></tr>
+    <tr><td>B16</td><td>Mute 旁路（临时禁用）</td><td>节点/链路禁用画布操作（P8）；运行时等价=插件停用（switchable/env_gate）</td><td><b>演进</b></td></tr>
+    <tr><td>B17</td><td>Spreadsheet（逐元素查数据）</td><td><code>GET /api/units/{id}</code> 查看 node_graph 与执行产物；画布数据面板（演进）</td><td><b>等价</b></td></tr>
+    <tr><td>B18</td><td>Geometry 五组件（Mesh/Curves/Points/Instances/Volumes）</td><td>payload 任意类型（dict/str/对象）——不预设类型体系，比五组件更宽</td><td><b>更宽</b></td></tr>
+    <tr><td>B19</td><td>Socket Subtype 全分类学（角度/波长/色温/频率…）</td><td>params 自由键值 + schema description 提示——比 Subtype 更宽；物理量纲场景见表 F3</td><td><b>更宽</b></td></tr>
+    <tr><td>B20</td><td>4.2 矩阵套件（Matrix 一等类型）</td><td>payload 可承载任意对象（含变换矩阵）——不需要专设矩阵节点</td><td><b>更宽</b></td></tr>
+    <tr><td>B21</td><td>Delta Time（帧间秒数=帧率倒数）</td><td><b>深度挖掘</b>：= Agent 编排的「时间预算/速率控制」——AskLimiter 并发配额与限流（请求间隔、配额消耗速率）即 Delta Time 机制；SSE 流式输出的 token 速率控制同理</td><td><b>等价</b></td></tr>
+    <tr><td>B22</td><td>Skip Forward（模拟区直通）</td><td>循环提前退出：judge 条件命中即跳过剩余迭代（回指边不被选取）</td><td><b>等价</b></td></tr>
+    <tr><td>B23</td><td>子步（substep）</td><td>步进细分：max_steps 之内的多级步进计数（data 中显式计数）</td><td><b>等价</b></td></tr>
+    <tr><td>B24</td><td>模拟缓存/烘焙到磁盘（乱序渲染农场）</td><td><b>深度挖掘</b>：= 长任务中间态持久化/断点续跑——profile state 目录 + 备份 zip（P2-5 导出/恢复）即「烘焙」：执行中断后从烘焙态续跑</td><td><b>等价</b></td></tr>
+    <tr><td>B25</td><td>Bake Items（任意插槽拖入烘焙项）</td><td>中间产物显式沉淀：data 字典中标记关键节点输出为「可沉淀项」（知识库/记忆写入即沉淀动作）</td><td><b>等价</b></td></tr>
+    <tr><td>B26</td><td>仅修改器上下文可用（Tool 上下文禁用）</td><td>上下文门控：env_gate / apply(immediate/restart) / 降级链——同「能力受上下文约束」思想</td><td><b>等价</b></td></tr>
+    <tr><td>B27</td><td>读取 Iteration（当前迭代序号）</td><td>data 中显式迭代计数（步进 process 节点维护计数器）——契约要求循环必须显式携带计数</td><td><b>等价</b></td></tr>
+    <tr><td>B28</td><td>Sample Index / 属性统计（取单值）</td><td>data 按键取值（<code>data.get('k')</code>）；统计聚合由 process expr 或插件完成</td><td><b>等价</b></td></tr>
+    <tr><td>B29</td><td>Socket Inspection（悬停看中间值）</td><td>画布悬停查看节点输出（演进）；当前经 API 详情端点查看</td><td><b>演进</b></td></tr>
+    <tr><td>B30</td><td>Viewer 节点 + Ctrl+1..9 快速分配</td><td>调试输出节点（演进）：任意节点输出可路由到观测点；快捷键体系随编辑器建设</td><td><b>演进</b></td></tr>
+    <tr><td>B31</td><td>Node Timings 叠加层（逐节点耗时）</td><td>性能基准脚本（scripts/bench）+ 成本/token 面板 F7——逐节点耗时可视化随画布落地</td><td><b>等价</b></td></tr>
+    <tr><td>B32</td><td>Named Attributes 叠加层</td><td>data 字典内容可视化（画布数据面板演进项）</td><td><b>演进</b></td></tr>
+    <tr><td>B33</td><td>Geometry Randomization（打乱索引测依赖）</td><td><b>深度挖掘</b>：= 图鲁棒性测试——打乱节点执行顺序/注入故障验证流程不变量（混沌测试）；测试策略记录</td><td><b>模式</b></td></tr>
+    <tr><td>B34</td><td>Warning 节点 + Propagation 策略</td><td>规则引擎告警（rule-engine 规则命中即告警）+ 告警沿图传播策略（fail-closed 节点的上下游通知）</td><td><b>等价</b></td></tr>
+    <tr><td>B35</td><td>N 面板（Node/View/Options 分组）</td><td>前端设置页 + 编辑器侧栏（画布属性/视图/选项三分组，演进）</td><td><b>演进</b></td></tr>
+    <tr><td>B36</td><td>帧选中/帧全部导航</td><td>画布导航（适配视图/全览，演进）</td><td><b>演进</b></td></tr>
+    <tr><td>B37</td><td>Ctrl+G 成组 / Tab 进入 / Alt-G 解组</td><td>编辑器封装操作（演进）：当前封装动作=「导出为 unit」（export_unit 即 Make Group 的契约态等价物）</td><td><b>等价</b></td></tr>
+    <tr><td>B38</td><td>Make Group 单节点保留接口 / 多节点自动生成接口</td><td>单工具 unit（manifest 单 tool）/ 图导出 unit（export_unit 自动生成契约接口）——两种粒度的封装原样对应</td><td><b>等价</b></td></tr>
+    <tr><td>B39</td><td>lazy-function graph 重构（4130f1e674）</td><td>GraphRuntime 单遍顺序执行——更简单的求值模型（记录取舍：我们无需惰性函数图复杂度，judge 条件即求值点）</td><td><b>等价</b></td></tr>
+    <tr><td>B40</td><td>匿名属性跨几何限制</td><td>data 字典跨节点全可见（我们更宽：无域隔离限制；隔离靠 profile 而非数据域）</td><td><b>更宽</b></td></tr>
+    <tr><td>B41</td><td>嵌套实例渲染 8 层上限</td><td>嵌套图深度限制（schema 预留 max_depth，防无限嵌套；当前两层契约已够）</td><td><b>演进</b></td></tr>
+    <tr><td>B42</td><td>Bundles（Combine/Separate/Join，多类型捆包）</td><td>data 字典多键打包即 Bundle（命名包）；Bundle 作为显式 socket 类型预留（类型表见表 C 色板定稿）</td><td><b>等价</b></td></tr>
+    <tr><td>B43</td><td>Closures（函数即值+捕获外部值）</td><td>策略插槽：process expr / judge condition 即「内联逻辑」；宿主插件暴露可注入逻辑位（审批规则/路由策略）供图上编写——Closure 的 Agent 编排版</td><td><b>等价</b></td></tr>
+    <tr><td>B44</td><td>Evaluate Closure（别处执行闭包）</td><td>注入的策略在宿主节点执行时求值（expr/condition 运行时求值即执行点）</td><td><b>等价</b></td></tr>
+    <tr><td>B45</td><td>Menu Switch（枚举路由）</td><td>枚举参数（schema enum/COMBO）+ judge condition 链按值路由</td><td><b>等价</b></td></tr>
+    <tr><td>B46</td><td>Index Switch（索引路由）</td><td><code>data[key]</code> 按索引/键选择（expr 取值路由）</td><td><b>等价</b></td></tr>
+    <tr><td>B47</td><td>版本演进时间线（3.0→5.2 LTS）</td><td>schema 版本化方法论：manifest 版本号 + min_platform 门禁 + 迁移说明（防参数集重构式 breaking change）</td><td><b>模式</b></td></tr>
+    <tr><td>B48</td><td>「分类树随版本演进」现象</td><td>市场分类演进方法论：分类可调（大类增减），节点 id 不变——「语法可演进、身份不动」</td><td><b>模式</b></td></tr>
+    <tr><td>B49</td><td>五类几何组件（教程侧）</td><td>payload 类型文档化：知识/文本/配置/引用/结果五类约定（类型定稿见表 C）</td><td><b>等价</b></td></tr>
+    <tr><td>B50</td><td>「工厂」心智模型（教程侧）</td><td>文档心智模型：注册表=零件库、图=流水线、profile=工位工具箱——「万物皆插件」的工厂叙事</td><td><b>模式</b></td></tr>
+  </table>
+
+  <p><b>表 C：Blender 材质（着色器）节点元素映射</b>（分类树/核心节点 I/O/socket 语义/执行模型/组与 Closure 全项）：</p>
+  <table>
+    <tr><th>#</th><th>案例元素（原子）</th><th>PyPedia 映射</th><th>状态</th></tr>
+    <tr><td>C1</td><td>Material Output 三入口（Surface/Volume/Displacement）</td><td>exit 多输出预留：当前单 exit 捕获 result+outputs+data 三件套；「多入口并存」语义（如同时出结果与诊断信息）由 outputs 字典覆盖</td><td><b>等价</b></td></tr>
+    <tr><td>C2</td><td>Thickness（仅 EEVEE 的能力差异参数）</td><td>能力差异参数：插件声明 runtime 能力标签，目标环境不支持时按白名单忽略或默认值替补（见 C28）</td><td><b>模式</b></td></tr>
+    <tr><td>C3</td><td>Material Output▸Target（多引擎分流）</td><td>env_gate / apply(immediate/restart) / 降级链——同一图多目标环境分流</td><td><b>等价</b></td></tr>
+    <tr><td>C4</td><td>Principled BSDF 分层结构（base→film→coat→sheen）</td><td>节点参数分层：params 按基础/高级分组（ui_panels contributions 折叠展示）</td><td><b>等价</b></td></tr>
+    <tr><td>C5</td><td>参数默认值（IOR=1.5 / Thin Film IOR=1.33 / Midlevel=0.5）</td><td>schema 参数 default 字段——每个参数必须有出厂默认值</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>C6</td><td>Alpha（透明度/输出过滤）</td><td>输出过滤与脱敏：Holdout 语义（见 C35）——结果按条件过滤敏感字段</td><td><b>等价</b></td></tr>
+    <tr><td>C7</td><td>Thin Wall（模式开关改变参数集）</td><td>布尔模式参数：模式切换时启用/禁用关联参数组（参数联动，schema 预留 depends_on）</td><td><b>演进</b></td></tr>
+    <tr><td>C8</td><td>Mix Shader（能量守恒混合）</td><td>多 Agent 结果加权仲裁：Mix=按权重合并（不变量=权重和=1，守恒）</td><td><b>模式</b></td></tr>
+    <tr><td>C9</td><td>Add Shader（可破坏守恒+官方警告）</td><td>并行叠加：Add=多结果拼接（不变量显式声明可被破坏，文档化警告）——两种合并算子都提供，不变量写进文档</td><td><b>模式</b></td></tr>
+    <tr><td>C10</td><td>「shader 只允许 Mix/Add」铁律</td><td>结果句柄受约束类型：模型调用结果/工具句柄只能经专用合并算子组合，禁止任意运算（受约束类型设计）</td><td><b>模式</b></td></tr>
+    <tr><td>C11</td><td>Math 46 运算全集</td><td>process expr + 受限 builtins（19 个无害内置）——表达式即运算节点</td><td><b>等价</b></td></tr>
+    <tr><td>C12</td><td>Vector Math 28 种（输出动态）</td><td>expr 任意 Python 表达式（比 28 种更宽；开发者信任级）</td><td><b>更宽</b></td></tr>
+    <tr><td>C13</td><td>Mix Color 16 种混合模式</td><td>数据合并策略库：合并语义由插件实现（文本拼接/字段择优/投票），平台不预设模式表</td><td><b>更宽</b></td></tr>
+    <tr><td>C14</td><td>Clamp（输出限幅）</td><td>参数范围校验（schema min/max）+ process 钳制函数</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>C15</td><td>Geometry 输出集（Position/Normal/Incoming…）</td><td>上下文数据源：data 字典即上下文（payload/历史输出/环境信息）</td><td><b>等价</b></td></tr>
+    <tr><td>C16</td><td>Texture Coordinate（多坐标系输出）</td><td>payload 命名空间：用户态/系统态/工具态数据分区（命名空间概念映射，非几何坐标）</td><td><b>等价</b></td></tr>
+    <tr><td>C17</td><td>Fresnel / Layer Weight（权重计算）</td><td>权重计算：expr/插件计算优先级权重（如置信度加权路由）</td><td><b>等价</b></td></tr>
+    <tr><td>C18</td><td>Light Path（按光线类型分支）</td><td><b>深度挖掘</b>：= 上下文感知路由——judge condition 读 data 上下文（请求类型/来源/时段）走不同分支；如「内部请求走快模、外部请求走全管线」</td><td><b>等价</b></td></tr>
+    <tr><td>C19</td><td>Pointiness（曲率特征驱动）</td><td><b>深度挖掘</b>：= 输入特征信号驱动行为——data 中的特征值（长度/复杂度/置信度）驱动 judge 分支</td><td><b>等价</b></td></tr>
+    <tr><td>C20</td><td>Random per Island（按孤岛独立随机）</td><td><b>深度挖掘</b>：= 按 Agent 独立随机参数——多 Agent 场景每个 agent 独立种子/人格参数（profile 隔离的随机性类比）</td><td><b>等价</b></td></tr>
+    <tr><td>C21</td><td>Bump Filter Width（仅支持固定值，不可随表面变化）</td><td>static-only 参数标记：schema 预留「该参数不可被上游数据动态覆盖」（防运行时注入破坏静态配置）</td><td><b>演进</b></td></tr>
+    <tr><td>C22</td><td>Bump Height 未接时 no-op 透传</td><td>缺参透传语义：process 节点可选参数缺失时原样透传 payload（容错设计）</td><td><b>等价</b></td></tr>
+    <tr><td>C23</td><td>Displacement Space（Object/World）</td><td>命名空间变换：payload 在用户态/系统态之间变换的语义选择（params 模式声明）</td><td><b>等价</b></td></tr>
+    <tr><td>C24</td><td>Normal Map Convention（OpenGL/DirectX）</td><td>数据约定显式化：编码/坐标系/时区/语言等约定必须显式声明（schema convention 字段预留），杜绝「默认约定漂移」</td><td><b>模式</b></td></tr>
+    <tr><td>C25</td><td>Mapping 四类型（Point/Texture/Vector/Normal）</td><td>变换语义选择：同一数据在不同命名空间下的变换规则（params mode 声明变换类型）</td><td><b>等价</b></td></tr>
+    <tr><td>C26</td><td>socket 颜色全局语义表（17 色）</td><td><b>PyPedia 色板定稿</b>（按我们的 socket 类型定，框架沿用、原子重铸）：Payload=蓝 / Condition=琥珀 / Config=灰 / AgentRef=紫 / Knowledge=青 / Rule=玫红 / Data=绿——每种类型唯一色，只同色可连（见表 D27）</td><td><b>演进</b></td></tr>
+    <tr><td>C27</td><td>Socket Shape 五形（Single/Field/Grid/Lists/Dynamic）</td><td>三态定稿：单值（Single）/ 批量（Batch=Lists）/ 流式（Stream）——按 Agent 编排语义重铸；Grid（逐元素）不采纳见表 F1</td><td><b>等价</b></td></tr>
+    <tr><td>C28</td><td>Cycles/EEVEE 能力矩阵 + 「近似而非等价」清单</td><td>插件能力标签 + 降级链：目标环境缺能力时给出近似实现或禁用并提示；降级语义文档化（哪些参数被忽略写清楚）</td><td><b>模式</b></td></tr>
+    <tr><td>C29</td><td>深度挖掘：Eevee SSS 每通道半径用默认值（连线被忽略）</td><td>降级参数白名单：降级模式下明确「哪些输入被忽略、以什么默认值替补」——降级不静默</td><td><b>模式</b></td></tr>
+    <tr><td>C30</td><td>Shader To RGB（受控破坏 PBR 流水线）</td><td><b>深度挖掘</b>：= 受控逃生舱——允许节点显式突破抽象层（如直接读原始 data），但必须显式声明用途；与 goto 论战「显式逃生舱」同哲学</td><td><b>模式</b></td></tr>
+    <tr><td>C31</td><td>节点组=函数类比（可复用/可组合/可参数化）</td><td>unit=函数：manifest 定义签名（contributions），实例化=调用，profile=闭包环境</td><td><b>等价</b></td></tr>
+    <tr><td>C32</td><td>允许嵌套、禁止递归（DAG 完整性）</td><td>validate_graph 环检测（演进项）；嵌套图深度限制（B41）</td><td><b>等价</b></td></tr>
+    <tr><td>C33</td><td>接口条目四类型（Inputs/Outputs/Panels/Toggle）</td><td>manifest 参数四分区：inputs（入参）/outputs（产出声明）/panels（参数分组）/toggle（布尔开关参数）——四分区原样对应</td><td><b>等价</b></td></tr>
+    <tr><td>C34</td><td>插槽属性 10 项（类型/描述/域/默认属性/子类型/默认值/Min-Max/维度/展开菜单/结构类型）</td><td>manifest 参数属性对照：type / description / default / min-max / dimension（数组维度）/ collapsed（折叠）/ enum（菜单）——逐项对应</td><td><b>等价</b></td></tr>
+    <tr><td>C35</td><td>Holdout（零 alpha 孔洞/禁止输出）</td><td><b>深度挖掘</b>：= 显式脱敏/禁止输出节点——规则引擎规则命中即对该字段「打孔」（脱敏或阻断输出），fail-closed 保证</td><td><b>等价</b></td></tr>
+    <tr><td>C36</td><td>Wireframe（线框显示模式）</td><td><b>深度挖掘</b>：= 画布线框模式——只看图的骨架结构（节点+边）不看数据，用于大图审查与结构走查</td><td><b>演进</b></td></tr>
+    <tr><td>C37</td><td>AOV Output（多通道观测输出）</td><td><b>深度挖掘</b>：= 多观测输出——一次执行同时产出多个观测通道（result/outputs/data 即三通道；可扩展诊断通道）</td><td><b>等价</b></td></tr>
+    <tr><td>C38</td><td>Emission Strength（0-10 非线性强度）</td><td>非线性范围参数：schema 参数范围不限 0-1（如 temperature 0-2、top_k 1-100）</td><td><b>等价</b></td></tr>
+    <tr><td>C39</td><td>命名前缀约定（Mat_/Comp_/Geo_）</td><td>unit id 命名空间：<code>publisher/name</code> 前缀（市场三类货架分区）</td><td><b>等价</b></td></tr>
+    <tr><td>C40</td><td><code>.</code> 前缀隐藏资产（只能搜索访问）</td><td>switchable=false 空壳入口（隐藏但可搜索的内部工具 unit）</td><td><b>等价</b></td></tr>
+    <tr><td>C41</td><td>Closure 捕获 zone 外值存入定义</td><td>策略插槽 + 上下文注入：注入的策略可捕获宿主上下文（data 快照）——「闭包环境」= profile+data</td><td><b>等价</b></td></tr>
+    <tr><td>C42</td><td>Sync Sockets / Define Signature（签名同步）</td><td>manifest 版本同步：接口变更时版本号递增 + min_platform 门禁，多实例（安装点）保持一致</td><td><b>等价</b></td></tr>
+    <tr><td>C43</td><td>Volume 与 Surface 并存（浑浊玻璃）</td><td>多模态输出并存：exit 同时捕获文本结果与结构化产物（多模态场景预留）</td><td><b>等价</b></td></tr>
+    <tr><td>C44</td><td>Script 节点（OSL 自定义着色）</td><td>沙箱 Python 执行（P2 服务端执行 seam）：用户代码在受控沙箱内运行——同「可编程节点」思想</td><td><b>等价</b></td></tr>
+    <tr><td>C45</td><td>Principled 3.x→5.x 参数集重构（版本断层）</td><td>schema 版本化强制令：节点参数集变更必须升版本 + 写迁移说明 + 提供兼容期（见表 D66 NodeReplace）</td><td><b>模式</b></td></tr>
+    <tr><td>C46</td><td>隐式转换矩阵（Color↔Vector↔Float↔Boolean…）</td><td>params 宽松键值（隐式兼容）+ 显式适配器节点预留（敏感转换显式化，见表 D21）</td><td><b>等价</b></td></tr>
+    <tr><td>C47</td><td>Implicit Conversion 节点（显式化隐式转换）</td><td>显式类型适配器 unit（预留）：把宽松转换显式化，便于调试与审计</td><td><b>演进</b></td></tr>
+    <tr><td>C48</td><td>shader 四分类（BSDF/Emission/Volume/Background）</td><td>节点行为四分类参照：执行型（process）/ 生成型（model-call）/ 持续型（cron/长任务）/ 环境型（context/config）——分类学方法论沿用</td><td><b>模式</b></td></tr>
+  </table>
+
+  <p><b>表 D：ComfyUI 元素映射</b>（分类树/节点 I/O/数据类型/契约/双格式/执行引擎/API/App Mode/Subgraph/V3/模型管理全项）：</p>
+  <table>
+    <tr><th>#</th><th>案例元素（原子）</th><th>PyPedia 映射</th><th>状态</th></tr>
+    <tr><td>D1</td><td>Node + Widget（节点内嵌控件）</td><td>节点 + params（编辑器属性面板同源编辑）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D2</td><td>Link 颜色编码（同色才通）</td><td>类型色板 + 连线校验（表 C26 色板定稿；validate_graph 类型检查演进）</td><td><b>演进</b></td></tr>
+    <tr><td>D3</td><td>连线渲染样式（曲线/直角/直线/隐藏）</td><td>SVG 画布连线样式切换（演进）</td><td><b>演进</b></td></tr>
+    <tr><td>D4</td><td>Reroute（原线点整理走线）</td><td>画布走线管理（P8 视觉增强项）</td><td><b>演进</b></td></tr>
+    <tr><td>D5</td><td>Get/Set（无线数据 beam）</td><td>data 字典跨节点直读（<code>data.get('k')</code>）——「无线」机制等价落地</td><td><b>等价</b></td></tr>
+    <tr><td>D6</td><td>Frames/Backdrops（命名着色分组）</td><td>画布分组容器（P8）</td><td><b>演进</b></td></tr>
+    <tr><td>D7</td><td>Subgraph（超节点：双击编辑/插槽/嵌套/widget 提升）</td><td><code>team_def.graph</code> 引用 agent unit=超节点；<code>agent_def.flow</code>=子图内部；画布折叠编辑（P8）</td><td><b>等价</b></td></tr>
+    <tr><td>D8</td><td>默认插槽（内部端口连上即自动暴露）</td><td>接口自动暴露：图导出 unit 时按外部连线自动生成契约接口（export_unit 同行为）</td><td><b>等价</b></td></tr>
+    <tr><td>D9</td><td>Widget 发布（提升为子图级控件）</td><td>params 提升：子图/unit 参数提升到外层可配（manifest 参数面板）</td><td><b>等价</b></td></tr>
+    <tr><td>D10</td><td>参数面板（排序/眼睛显隐）</td><td>ui_panels contributions（参数分组/显隐控制）</td><td><b>等价</b></td></tr>
+    <tr><td>D11</td><td>子图实例共享编辑/clone 独立</td><td>unit 实例化：form=template（类，改定义处处生效）/ form=instance（对象，clone 后独立）——「共享 vs 独立」精确对应</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D12</td><td>Unpack（拆回普通节点）</td><td>图拆解编辑器操作（演进）</td><td><b>演进</b></td></tr>
+    <tr><td>D13</td><td>Blueprint（发布到库/实例隔离）</td><td>市场上架模板（form=template 入三类货架）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D14</td><td>节点契约五件套（CATEGORY/RETURN_TYPES/RETURN_NAMES/FUNCTION/INPUT_TYPES）</td><td>unit manifest（id/type/form）+ schema 校验 + _call_handler 执行——五件套逐项对应（category=市场分类/return types=输出契约/function=handler/input types=params schema）</td><td><b>等价</b></td></tr>
+    <tr><td>D15</td><td>CATEGORY <code>/</code> 分层树</td><td>市场分类树（plugin/agent/team 三类货架 + 子分类）</td><td><b>等价</b></td></tr>
+    <tr><td>D16</td><td>INPUT_TYPES 三段式（required/optional/hidden）</td><td>schema required/optional + 引擎注入 hidden（节点 id、完整图、运行环境——hidden 值注入预留）</td><td><b>等价</b></td></tr>
+    <tr><td>D17</td><td>选项键 default/min/max/step</td><td>schema 参数属性 default/min/max/step 逐项对应</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D18</td><td>选项键 display(slider)</td><td>参数 UI 控件类型（滑块/数字框，编辑器属性面板）</td><td><b>演进</b></td></tr>
+    <tr><td>D19</td><td>选项键 multiline</td><td>多行文本参数（提示词/系统提示词多行编辑）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D20</td><td>选项键 tooltip</td><td>参数 description（悬停提示）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D21</td><td>选项键 forceInput（禁控件强制连线）</td><td>强制连线参数：该参数禁止静态配置只能来自上游（schema 预留 force_link）</td><td><b>演进</b></td></tr>
+    <tr><td>D22</td><td>选项键 advanced（折叠进高级区）</td><td>参数分组 advanced（ui_panels 折叠区）</td><td><b>等价</b></td></tr>
+    <tr><td>D23</td><td>选项键 rawLink</td><td>原始连接透传（预留：连接原样透传不做转换）</td><td><b>演进</b></td></tr>
+    <tr><td>D24</td><td>dynamicPrompts（花括号随机展开）</td><td>提示词模板变量：<code>{}</code> 占位符由运行时数据填充（提示词工程内置能力）</td><td><b>等价</b></td></tr>
+    <tr><td>D25</td><td>VALIDATE_INPUTS（排队前校验）</td><td>validate_graph（执行前裁判：结构+引用+expr 语法编译）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D26</td><td>IS_CHANGED（结果可否复用）</td><td>节点缓存指纹（演进）：输入未变跳过执行（见表 D46）</td><td><b>演进</b></td></tr>
+    <tr><td>D27</td><td>16 数据类型 + hex 槽位色</td><td><b>PyPedia 类型表定稿</b>（框架沿用、原子重铸）：Payload(蓝)/Condition(琥珀)/Config(灰)/AgentRef(紫)/Knowledge(青)/Rule(玫红)/Data(绿)——见表 C26；图像管线类型不采纳见表 F5</td><td><b>演进</b></td></tr>
+    <tr><td>D28</td><td>COMBO（文件下拉枚举）</td><td>枚举参数：schema enum + 运行时选项源（模型列表/插件列表/规则列表由 API 提供）</td><td><b>等价</b></td></tr>
+    <tr><td>D29</td><td>通配类型 <code>*</code></td><td>payload 任意类型（不预设类型体系）</td><td><b>更宽</b></td></tr>
+    <tr><td>D30</td><td>UI/API 双格式（一张图两种投影）</td><td>画布呈现态 ↔ node_graph 契约态双向编译（_normalize_graph/validate_graph/export_unit）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D31</td><td>编辑态节点（Note/Reroute/Primitive）API 中不存在</td><td>position 及纯视觉属性导出剥除（_normalize_graph 幂等归一）——同「编辑态≠执行态」</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D32</td><td>mute（剔除）/ bypass（直连）</td><td>节点禁用（mute）/ 旁路直连（bypass）画布操作（P8）；运行时等价=插件停用/降级</td><td><b>演进</b></td></tr>
+    <tr><td>D33</td><td>widgets_values 按声明序位置对齐（手转易错）</td><td>命名键值 params——我们按名对齐（更稳，无位置漂移风险）；记录为相对 ComfyUI 的结构优势</td><td><b>更宽</b></td></tr>
+    <tr><td>D34</td><td>数组值包 <code>{"__value__": [...]}</code></td><td>JSON 数组参数原样表示（schema array 类型）</td><td><b>等价</b></td></tr>
+    <tr><td>D35</td><td>子图展平为 <code>"12:3"</code> 式 id</td><td>嵌套图展开：团队图执行时展开成员 Agent 内部图（演进；命名规则 = <code>agentId:nodeId</code>）</td><td><b>演进</b></td></tr>
+    <tr><td>D36</td><td>PromptQueue（heapq 优先级队列 + history）</td><td>图执行队列（演进）：ask 请求排队 + 优先级 + 执行历史（当前 AskLimiter 管并发，队列化随画布执行落地）</td><td><b>演进</b></td></tr>
+    <tr><td>D37</td><td>front（插队首）/ number（优先级）</td><td>请求优先级参数（API 预留 priority 字段）</td><td><b>演进</b></td></tr>
+    <tr><td>D38</td><td>专用 worker 线程 + soft_empty_cache</td><td>后台执行 + 资源释放：AskLimiter 信号量隔离 + 执行后清理（同「事件循环与重计算隔离」思想）</td><td><b>等价</b></td></tr>
+    <tr><td>D39</td><td>ExecutionList 三态（staged/unstaged/completed）</td><td>执行状态机（演进）：节点就绪/等待/完成三态 + 执行中可追加依赖（动态图）</td><td><b>演进</b></td></tr>
+    <tr><td>D40</td><td>懒链接→强链接（按需拉输入）</td><td><b>深度挖掘</b>：= 短路求值——judge 未选取分支的上游可不求值（当前全量执行；短路语义随并行机制落地）</td><td><b>演进</b></td></tr>
+    <tr><td>D41</td><td>节点挑选顺序（OUTPUT_NODE→async→直接阻塞→间接）</td><td>exit 优先执行（演进）：结果节点优先产出，缩短感知时长</td><td><b>演进</b></td></tr>
+    <tr><td>D42</td><td>部分执行（从输出节点起跑分支）</td><td>图调试：从任一节点起跑不必全图重跑（编辑器调试功能，演进）</td><td><b>演进</b></td></tr>
+    <tr><td>D43</td><td>节点展开（enable_expand + GraphBuilder 动态子图）</td><td>宏节点运行时编译：执行期动态注入子图（如按参数展开 N 个并行子任务，演进）</td><td><b>演进</b></td></tr>
+    <tr><td>D44</td><td>多级可插拔缓存（Classic/LRU/RAM Pressure/Null）</td><td>缓存策略分级：节点结果缓存 + 内存压力自适应 + 关缓存全跑（调试模式）</td><td><b>演进</b></td></tr>
+    <tr><td>D45</td><td>RAM Pressure Cache（按可用内存动态调整）</td><td>自适应资源管理：按机器能力自适应批大小/缓存深度</td><td><b>模式</b></td></tr>
+    <tr><td>D46</td><td>fingerprint_inputs / not_idempotent（指纹+逃生门）</td><td>输入指纹缓存 + 强制重跑标记（model-call 节点天然非幂等=默认不缓存）</td><td><b>等价</b></td></tr>
+    <tr><td>D47</td><td>execution_cached（缓存命中显式通告）</td><td>「哪些节点没跑」显式通告：执行回执含 skipped 列表（不玩黑魔法）</td><td><b>演进</b></td></tr>
+    <tr><td>D48</td><td>验证错误 10 种（required_input_missing…prompt_no_outputs）</td><td>校验错误分类学：validate_graph 错误类型结构化（缺失必填/链接非法/类型不匹配/引用不存在/无出口节点…）——错误类型表对标 10 种</td><td><b>等价</b></td></tr>
+    <tr><td>D49</td><td>/prompt /queue /interrupt /free /history</td><td>我们：<code>POST /api/ask</code>（提交执行）/ <code>/api/status</code>（状态）/ 中断（演进）/ 资源释放（重启即释放）/ <code>GET /api/sessions</code>（历史）——端点语义逐项对应</td><td><b>等价</b></td></tr>
+    <tr><td>D50</td><td>/object_info（全节点 schema 内省）</td><td><code>GET /api/units</code> + <code>/api/plugins</code>（注册表内省：前端据此动态发现节点类型）——最关键的「自描述」端点对应</td><td><b>等价</b></td></tr>
+    <tr><td>D51</td><td>/system_stats /models/{folder}</td><td><code>/api/status</code>（系统状态/能力宣告）+ 模型/插件清单端点</td><td><b>等价</b></td></tr>
+    <tr><td>D52</td><td>/view（读文件，路径穿越防护）</td><td>静态文件端点 + 路径穿越防护（安全同款）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D53</td><td>/upload/image</td><td>知识库上传/导入端点（多格式文档上传）</td><td><b>等价</b></td></tr>
+    <tr><td>D54</td><td>/features（feature flags 协商）</td><td><code>/api/status</code> 能力宣告（前端按能力渲染）</td><td><b>等价</b></td></tr>
+    <tr><td>D55</td><td>/global_subgraphs（子图目录下发）</td><td><code>GET /api/units</code> 全量单元下发（含 agent/team 图定义）——「目录约定零代码分发」对应我们的 units/ 目录</td><td><b>等价</b></td></tr>
+    <tr><td>D56</td><td>/ws WebSocket（11 消息类型）</td><td>SSE 流式（F1 已落地：token 流式输出）；执行事件推送（executing/cached 等）随图执行落地</td><td><b>等价</b></td></tr>
+    <tr><td>D57</td><td>二进制帧（PREVIEW_IMAGE/TEXT/METADATA）</td><td>多模态输出推送（图片/音频结果随 SSE 二进制通道，见表 F6）</td><td><b>演进</b></td></tr>
+    <tr><td>D58</td><td>client_id 定向推送（防跨客户端串扰）</td><td>多用户场景消息隔离（单机单用户版不必须；见表 F7）</td><td><b>模式</b></td></tr>
+    <tr><td>D59</td><td>App Mode 四步（Inputs/Outputs/Preview/Default view）</td><td>「同一契约态、多种呈现态」：团队图应用态（只暴露输入输出）与编辑态共享 node_graph——App Builder 四步直接沿用</td><td><b>等价</b></td></tr>
+    <tr><td>D60</td><td>Subgraph Blueprint 目录约定（custom_nodes/*/subgraphs/*.json）</td><td>units/ 目录约定：unit 放目录即入注册表（内置 + 市场同一契约）——「放文件即分发」同款</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D61</td><td>Get/Set 虚拟节点透明重写（前端剥离、导出真实边）</td><td>编译期去语法糖：_normalize_graph 做同一件事（ref 双位置容错归一、视觉属性剥除）——「虚拟构造编译期消解」同模式</td><td><b>等价</b></td></tr>
+    <tr><td>D62</td><td>V1→V3 契约演进（类→Schema 对象）</td><td>manifest 版本化：契约显式化 + 版本号 + 适配期</td><td><b>等价</b></td></tr>
+    <tr><td>D63</td><td>io.Schema 字段 18 项</td><td>manifest 字段对照：node_id→unit id / display_name→name / category→市场分类 / description→描述 / is_output_node→exit 节点标记 / is_input_list→批量输入 / is_deprecated→deprecated / is_experimental→experimental / is_dev_only→dev / not_idempotent→非幂等标记 / accept_all_inputs→params 开放 / enable_expand→宏节点 / price_badge→成本徽章（F7 面板）</td><td><b>等价</b></td></tr>
+    <tr><td>D64</td><td>输入类型速查（INT/FLOAT/STRING/BOOLEAN/COMBO/自定义）</td><td>schema 参数类型：string/number/integer/boolean/array/object/enum/custom</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D65</td><td>隐藏值枚举（unique_id/prompt/extra_pnginfo/dynprompt/auth_token）</td><td>引擎注入对照：unique_id→节点 id / prompt→完整图快照 / extra_pnginfo→执行元数据 / dynprompt→运行时可改图 / auth_token→凭证（credentials 目录）</td><td><b>等价</b></td></tr>
+    <tr><td>D66</td><td>NodeReplace（旧工作流按映射自动迁移）</td><td>版本迁移器（演进）：unit 升级后旧图按输入/输出映射自动适配</td><td><b>演进</b></td></tr>
+    <tr><td>D67</td><td>DynamicCombo（动态组合参数）</td><td>联动参数：选 A 才出现 B（schema 预留 depends_on）</td><td><b>演进</b></td></tr>
+    <tr><td>D68</td><td>MatchType（泛型同构吸附）</td><td>泛型类型匹配（预留：上下游同构才可连）</td><td><b>演进</b></td></tr>
+    <tr><td>D69</td><td>Autogrow（输入随连接增长）</td><td>多输入插件：如「多文本合并」插件接受任意条上游输入</td><td><b>等价</b></td></tr>
+    <tr><td>D70</td><td>block_execution（阻断下游）</td><td>fail-closed 阻断：规则引擎命中即阻断下游执行（已落地同语义）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D71</td><td>注册表分发（pyproject 双段式）</td><td>manifest + 市场元数据（id/version/publisher 三段）</td><td><b>等价</b></td></tr>
+    <tr><td>D72</td><td>安全三层扫描（eval/exec、subprocess pip、混淆）</td><td>市场上传安全扫描（演进）：上传 unit 静态扫描危险调用</td><td><b>演进</b></td></tr>
+    <tr><td>D73</td><td>版本不可变（只能 deprecate+发新版）</td><td>市场版本不可变 + units.lock 账本锁版本</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D74</td><td>工作流锁版本（包名+PublisherId+精确版本）</td><td>units.lock 账本：图锁定 unit 名+版本+哈希，保证可复现</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>D75</td><td>模型即外部资源、节点只存名字</td><td>重资源不进契约态：模型/语料/凭证只存引用名+版本约束（credentials 目录管凭证）</td><td><b>等价</b></td></tr>
+    <tr><td>D76</td><td>extra_model_paths.yaml（外部资源配置）</td><td>外部资源配置：.env/配置管模型路径、语料路径</td><td><b>等价</b></td></tr>
+    <tr><td>D77</td><td>Node Library 两页（Essentials 精选 + All 全量）+ 书签</td><td>市场精选页/全量页 + 收藏（演进）</td><td><b>等价</b></td></tr>
+    <tr><td>D78</td><td>节点状态（正常/运行/错误/缺失）+ 徽章</td><td>画布节点状态徽章（演进：未安装=缺失、执行中=运行、失败=错误）</td><td><b>演进</b></td></tr>
+    <tr><td>D79</td><td>连接规则（同色才通）</td><td>类型校验规则（表 C26/D2）</td><td><b>演进</b></td></tr>
+    <tr><td>D80</td><td>ComfyUI group（纯视觉框）vs subgraph（真封装）</td><td>取舍记录：我们不做纯视觉框的「假组」——分组即引用（unit）或视觉 Frame（P8），杜绝「看起来是组其实没封装」的歧义</td><td><b>模式</b></td></tr>
+    <tr><td>D81</td><td>节点 UI 属性（size/order/flags/properties）</td><td>画布节点 UI 元数据（position 之外：尺寸/层级/折叠标志，P8）</td><td><b>演进</b></td></tr>
+    <tr><td>D82</td><td>10 秒可读原则 + 三形态（Templates/Blueprints/Workflows）</td><td>模板可读性原则 + form 双态 + 三类货架（已在 A47/D11/D13）</td><td><span class="ok">✅ 已落地</span></td></tr>
+  </table>
+
+  <p><b>表 E：文本化图格式 / Blockly / 文献元素映射</b>：</p>
+  <table>
+    <tr><th>#</th><th>案例元素（原子）</th><th>PyPedia 映射</th><th>状态</th></tr>
+    <tr><td>E1</td><td>Mermaid flowchart 语法（flowchart TD/LR）</td><td>node_graph 人类可读序列化（演进：导出 mermaid 供 git diff/issue 贴图）</td><td><b>演进</b></td></tr>
+    <tr><td>E2</td><td>Mermaid 30+ 语义形状词表</td><td>画布形状语义：六类节点各一形状（椭圆=起止/矩形=过程/菱形=判断/双线矩形=引用）——形状词表按需取用</td><td><b>等价</b></td></tr>
+    <tr><td>E3</td><td>Mermaid classDef（样式类）</td><td>画布主题/样式类（演进：按节点类型批量配色）</td><td><b>演进</b></td></tr>
+    <tr><td>E4</td><td>Mermaid 边 ID（<code>A e1@==> B</code>）</td><td>边命名/断言挂载点（预留：边可携带 id + assert 属性，配合 A36 不变量）</td><td><b>演进</b></td></tr>
+    <tr><td>E5</td><td>Mermaid subgraph（可嵌套/可覆写 direction）</td><td>嵌套图分组：子图框 = 子 Agent 图容器（P8 画布折叠）</td><td><b>等价</b></td></tr>
+    <tr><td>E6</td><td>Mermaid 链式 <code>A--&gt;B&amp;C</code></td><td>一对多连线语法糖（编辑器批量连线，演进）</td><td><b>演进</b></td></tr>
+    <tr><td>E7</td><td>布局引擎可插拔（dagre/ELK）</td><td>画布自动布局（演进：接入 dagre；契约态不含几何，布局可换）——印证「呈现态可弃可重算」</td><td><b>演进</b></td></tr>
+    <tr><td>E8</td><td>D2 容器点路径（<code>aws.ec2.instance</code>）</td><td>层级命名空间：unit id 路径式命名（<code>publisher/category/name</code>）</td><td><b>等价</b></td></tr>
+    <tr><td>E9</td><td>D2 专用形状（sql_table/class/sequence_diagram）</td><td>专用节点形状：agent 形状（人形图标）/team 形状（群组图标）/知识库形状（圆柱）——按领域定专用形状</td><td><b>演进</b></td></tr>
+    <tr><td>E10</td><td>D2 tooltip/icon/link 富元数据</td><td>节点富元数据（悬停提示/图标/文档链接，P8）</td><td><b>演进</b></td></tr>
+    <tr><td>E11</td><td>D2 TALA per-container 方向与祖先-后代边</td><td>分层布局能力（演进：团队图分层布局时参考；TALA 闭源不直接接入，见表 F10）</td><td><b>模式</b></td></tr>
+    <tr><td>E12</td><td>DOT strict（简单图：禁多重边）</td><td>契约约束讨论：我们允许 to 回指+多出口，不强制 strict；记录为「有意不采纳」——灵活性优先</td><td><b>模式</b></td></tr>
+    <tr><td>E13</td><td>DOT <code>A-&gt;{B C}</code>（展开全连接）</td><td>批量连线语法（同 E6）</td><td><b>演进</b></td></tr>
+    <tr><td>E14</td><td>DOT rankdir（布局方向）</td><td>画布流向约定：默认自上而下（对应 ISO 方向规则 A24）</td><td><b>等价</b></td></tr>
+    <tr><td>E15</td><td>DOT HTML-like labels（富文本标签）</td><td>节点富文本描述（标签内嵌格式，P8）</td><td><b>演进</b></td></tr>
+    <tr><td>E16</td><td>DOT cluster（布局引擎约定非语言本身）</td><td>概念借鉴定：视觉分组是呈现态约定，不进契约态（同 position 剥除）——理论印证我们的设计</td><td><b>模式</b></td></tr>
+    <tr><td>E17</td><td>PlantUML if/then/else/endif、switch/case、while/endwhile</td><td>结构化控制可文本化证明：控制流关键字可 round-trip——为「契约态可序列化为人类可读文本」提供语法先例</td><td><b>模式</b></td></tr>
+    <tr><td>E18</td><td>PlantUML fork/fork again/end fork、split</td><td>并行控制文本化（随 A41 并行机制同步设计文本语法）</td><td><b>演进</b></td></tr>
+    <tr><td>E19</td><td>PlantUML detach（灭本支）/ kill（杀全图）</td><td>双终止文本化（对应 A44：分支终止 vs 全图终止）</td><td><b>等价</b></td></tr>
+    <tr><td>E20</td><td>PlantUML label/goto（实验性）</td><td>逃生舱语法：官方标「实验性」佐证 A38——逃生舱可以有，但须显式且非默认</td><td><b>模式</b></td></tr>
+    <tr><td>E21</td><td>PlantUML 泳道 <code>|Lane|</code></td><td>团队图责任分区文本化（A45 的序列化形态）</td><td><b>等价</b></td></tr>
+    <tr><td>E22</td><td>PlantUML group/partition</td><td>视觉分组/责任分区（A20/A45）</td><td><b>等价</b></td></tr>
+    <tr><td>E23</td><td>Blockly JSON round-trip（save/load 完全对称）</td><td>图两态工业级先例：画布↔JSON 双向编译的落地实证（_normalize_graph 与 validate_graph 的组合即 round-trip 保证）</td><td><b>等价</b></td></tr>
+    <tr><td>E24</td><td>Blockly x/y 与语义分离</td><td>position 属呈现态剥除；type/inputs/fields 属契约态——字段两分法写入 schema 设计原则</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>E25</td><td>Blockly id 稳定性</td><td>节点 id 图内唯一且稳定（diff/协同/undo 的基础）</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>E26</td><td>Blockly events（create/delete/change/move）</td><td>画布变更事件化：undo/redo/自动保存/协同的前置（编辑器演进）</td><td><b>演进</b></td></tr>
+    <tr><td>E27</td><td>Blockly shadow 块（默认值节点）</td><td>参数缺省值：params 未配置时取 schema default——「影子默认值」同构</td><td><span class="ok">✅ 已落地</span></td></tr>
+    <tr><td>E28</td><td>Blockly 类型化连接器（nextStatement:"Action"）</td><td>连线类型校验：控制流连接器与数据流连接器分型（judge 出边只能连执行节点等规则，演进）</td><td><b>演进</b></td></tr>
+    <tr><td>E29</td><td>Blockly 块定义 JSON（type/message0/args0/input*/field*/previousStatement/nextStatement/output）</td><td>节点类型注册表：builtins.py 真值源 + unit.schema.json——「块定义 JSON」= 我们的节点类型定义（六类节点的 params 契约表）</td><td><b>等价</b></td></tr>
+    <tr><td>E30</td><td>Blockly message0+args0（插值 token %1..%n）</td><td>节点描述模板：名称/描述支持插值变量（多语言与动态描述的基础）</td><td><b>演进</b></td></tr>
+    <tr><td>E31</td><td>Blockly 块 UI 元数据（collapsed/disabledReasons/deletable/movable/editable/inline/data）</td><td>节点 UI 元数据九项对照：折叠/禁用原因/可删/可移/可编辑/内联/自定义数据——编辑器建设时逐项落地</td><td><b>演进</b></td></tr>
+    <tr><td>E32</td><td>Blockly implicitAlign（隐式对齐）</td><td>画布自动对齐（演进）</td><td><b>演进</b></td></tr>
+    <tr><td>E33</td><td>Blockly XML legacy 序列化</td><td>双序列化取舍：我们只保留 JSON 单格式（更简；见表 F8）</td><td><b>模式</b></td></tr>
+    <tr><td>E34</td><td>Blockly 代码生成器与画布解耦</td><td>多目标编译：同一 node_graph 可编译到多个目标（执行/导出 unit/导出 mermaid/导出文档）——「图即中间表示」</td><td><b>等价</b></td></tr>
+    <tr><td>E35</td><td>FC2Code 两阶段（结构识别→代码生成）</td><td>契约构建算法参照：循环检测/判定树归约 = validate_graph 结构检查的研究对象（未来画布智能纠错）</td><td><b>模式</b></td></tr>
+    <tr><td>E36</td><td>FloCo 数据集（11,884 流程图-代码对）</td><td>测试策略：构建「图-行为对」测试集（给定图断言执行结果，741 测试中图相关用例即此形态）</td><td><b>等价</b></td></tr>
+    <tr><td>E37</td><td>Floyd 不变量/ GCL 卫哨（理论侧）</td><td>见表 A36/A32（不重复列）</td><td><b>等价</b></td></tr>
+  </table>
+
+  <p><b>表 F：审视后明确「不直接采纳」的元素（看见 + 决策 + 记录，绝不「看透」跳过）</b>：</p>
+  <table>
+    <tr><th>#</th><th>不采纳元素</th><th>不采纳理由</th><th>重新考虑条件</th></tr>
+    <tr><td>F1</td><td>Blender 字段全谱（Field/Grid 逐元素/体素求值）</td><td>单 Agent/团队编排无需逐元素几何求值；批量语义由「批量 payload + 遍历（B12）」覆盖</td><td>出现「对数据集逐条跑图」的真实需求（批量评测场景）</td></tr>
+    <tr><td>F2</td><td>属性域（component domain）上下文系统</td><td>data 字典以节点 id 为域已足够；域系统增加认知负担</td><td>同 F1</td></tr>
+    <tr><td>F3</td><td>Subtype 物理量纲全分类学（波长/色温/频率/时间…）</td><td>params 自由键值+description 覆盖全部提示需求；量纲系统对 LLM 编排无增益</td><td>接入物理仿真/科学计算类插件</td></tr>
+    <tr><td>F4</td><td>Cycles 级求值确定性/无偏性保证</td><td>LLM 编排的非确定性是特性不是缺陷；置信度节点正是为管理不确定性而设</td><td>永不（领域本质不同）</td></tr>
+    <tr><td>F5</td><td>ComfyUI 16 种图像管线类型原表</td><td>领域不同：我们的类型表按 AI 编排重铸（表 D27）——框架沿用、原子重铸</td><td>接入图像/视频生成插件时扩展类型表（类型表可扩展，见冻结纪律）</td></tr>
+    <tr><td>F6</td><td>二进制帧协议（PREVIEW_IMAGE 等）</td><td>SSE 文本流已覆盖当前需求；二进制推送协议复杂度暂不需要</td><td>多模态（图片/音频）结果需流式推送时</td></tr>
+    <tr><td>F7</td><td>client_id 定向推送</td><td>单机单用户版无跨客户端串扰风险</td><td>多用户/云端化版本</td></tr>
+    <tr><td>F8</td><td>Blockly XML legacy 双序列化</td><td>JSON 单格式更简；XML 无增量价值</td><td>永不</td></tr>
+    <tr><td>F9</td><td>PlantUML goto 正式语法</td><td>官方自标实验性；回指边+judge 已覆盖「受限跳转」全部需求</td><td>永不（逃生舱已由回指边表达）</td></tr>
+    <tr><td>F10</td><td>D2 TALA 闭源布局引擎</td><td>开源优先（dagre/ELK 足够）；闭源依赖违反轻量原则</td><td> dagre/ELK 无法满足分层布局需求且授权可接受</td></tr>
+    <tr><td>F11</td><td>DOT 力导向布局（neato/fdp/sfdp/circo）</td><td>流程图流向布局优先；力导向适合关系网不适合流程</td><td>需要「Agent 关系网」非流程图视图时</td></tr>
+    <tr><td>F12</td><td>Blender 已移除节点（Musgrave/Point Density/Anisotropic 等）</td><td>领域无关且官方已移除</td><td>永不</td></tr>
+    <tr><td>F13</td><td>Ray Portal BSDF / Volume Coefficients / Blackbody / Wavelength</td><td>领域无关（光学物理）；已记录其思想映射（传送=ref 引用见表 B13；量纲=F3）</td><td>同 F3</td></tr>
+    <tr><td>F14</td><td>ComfyUI group（纯视觉假组）</td><td>「看起来是组其实没封装」歧义——我们分组即引用或视觉框（D80）</td><td>永不（设计哲学排斥假封装）</td></tr>
+  </table>
+  <div class="note"><b>穷尽性声明</b>：本表覆盖 5.14.1–5.14.8 全部案例元素共 <b>264 项</b>（A47 + B50 + C48 + D82 + E37），其中 ✅ 已落地 <b>46 项</b>、等价 <b>117 项</b>、更宽（我们的机制覆盖且更通用）<b>8 项</b>、演进项 <b>67 项</b>、设计模式记录 <b>26 项</b>；表 F 明确不采纳 <b>14 项</b>并附理由与重审条件。<b>没有任何一个元素被「看透」跳过</b>——不采纳的也经过了看见、评估、决策、记录四步。</div>
+
+<h4>5.14.10 完整教程与官方文档资源</h4>
+  <p><b>Blender 材质（着色器）节点（官方手册 + 系统课程 + PBR 实务）</b>：</p>
+  <table>
+    <tr><th>资源</th><th>类型</th><th>覆盖</th><th>链接</th></tr>
+    <tr><td>Blender 官方手册 · 着色器节点索引（英）</td><td>官方文档</td><td>5.2 LTS 九大类全节点参考树（Input/Output/Shader/Displacement/Texture/Color/Utilities/Group），每节点 I/O 与 Cycles/EEVEE 标注</td><td><a href="https://docs.blender.org/manual/en/latest/render/shader_nodes/index.html">docs.blender.org/manual/en/latest/render/shader_nodes/</a></td></tr>
+    <tr><td>官方手册 · 节点部件（socket 语义）</td><td>官方文档</td><td>socket 颜色全表 / 形状语义（Single-Field-Grid-Lists）/ 隐式显式转换矩阵</td><td><a href="https://docs.blender.org/manual/en/latest/interface/controls/nodes/parts.html">docs.blender.org/manual/en/latest/interface/controls/nodes/parts.html</a></td></tr>
+    <tr><td>官方手册 · Principled BSDF 专页</td><td>官方文档</td><td>OpenPBR 分层结构全部输入输出、默认值、版本断层说明</td><td><a href="https://docs.blender.org/manual/en/latest/render/shader_nodes/shader/principled.html">docs.blender.org/manual/en/latest/render/shader_nodes/shader/principled.html</a></td></tr>
+    <tr><td>官方手册 · 着色器引言（执行模型）</td><td>官方文档</td><td>shader 四分类 / Mix-Add 铁律 / 能量守恒警告</td><td><a href="https://docs.blender.org/manual/en/latest/render/shader_nodes/introduction.html">docs.blender.org/manual/en/latest/render/shader_nodes/introduction.html</a></td></tr>
+    <tr><td>官方手册 · Eevee 节点支持限制</td><td>官方文档</td><td>Cycles/EEVEE 能力矩阵（专属/仅 Cycles/近似清单）</td><td><a href="https://docs.blender.org/manual/zh.cn/dev/render/eevee/limitations/nodes_support.html">docs.blender.org/manual/.../eevee/limitations/nodes_support.html</a></td></tr>
+    <tr><td>Blender Guru · How to Texture in Blender</td><td>系统课程（免费完整）</td><td>shader 基础 / PBR 工作流 / Node Wrangler 体系化</td><td><a href="https://www.blenderguru.com/posts/how-to-texture-in-blender-full-course">blenderguru.com/posts/how-to-texture-in-blender-full-course</a></td></tr>
+    <tr><td>Locker3d · Material Nodes for PBR Textures</td><td>教程文章</td><td>PBR 贴图接线完整配方 + 色彩空间陷阱 + 打包 node group</td><td><a href="https://www.locker3d.com/2025/02/blender-material-nodes-for-pbr-textures.html">locker3d.com/2025/02/blender-material-nodes-for-pbr-textures.html</a></td></tr>
+    <tr><td>Locker3d · Cycles vs Eevee PBR</td><td>教程文章</td><td>两引擎切换时的材质调整实务</td><td><a href="https://www.locker3d.com/2025/02/cycles-vs-eevee-pbr-rendering-in-blender.html">locker3d.com/2025/02/cycles-vs-eevee-pbr-rendering-in-blender.html</a></td></tr>
+    <tr><td>CG Cookie · Make Realistic Ice</td><td>视频教程</td><td>Principled BSDF 程序化冰材质，Eevee/Cycles 对照</td><td><a href="https://www.youtube.com/watch?v=qES5WMBXOWo">youtube.com/watch?v=qES5WMBXOWo</a></td></tr>
+  </table>
+  <p><b>Blender 几何节点（官方手册 + 官方规范页 + 系统课程 + 入门指南）</b>：</p>
+  <table>
+    <tr><th>资源</th><th>类型</th><th>覆盖</th><th>链接</th></tr>
+    <tr><td>Blender 官方手册 · 几何节点索引（英）</td><td>官方文档</td><td>14 大类全节点参考树（Attribute/Input/Output/Geometry/Curve/Instance/Mesh/Point/Volume/Simulation/Material/Texture/Utilities/Group/Hair）</td><td><a href="https://docs.blender.org/manual/en/latest/modeling/geometry_nodes/">docs.blender.org/manual/en/latest/modeling/geometry_nodes/</a></td></tr>
+    <tr><td>官方手册 · 字段（Fields）专页</td><td>官方文档</td><td>字段=函数 / 三态插槽 / 三类节点 / 上下文求值 / Capture 缓存</td><td><a href="https://docs.blender.org/manual/en/latest/modeling/geometry_nodes/fields.html">docs.blender.org/manual/en/latest/modeling/geometry_nodes/fields.html</a></td></tr>
+    <tr><td>官方手册 · 节点组接口（Node Groups）专页</td><td>官方文档</td><td>Group Sockets 面板 / 接口条目四类型 / 插槽属性 / Subtype 全分类学 / Make Group</td><td><a href="https://docs.blender.org/manual/en/latest/interface/controls/nodes/groups.html">docs.blender.org/manual/en/latest/interface/controls/nodes/groups.html</a></td></tr>
+    <tr><td>官方手册 · 模拟区 / 重复区专页</td><td>官方文档</td><td>Zone 机制：Delta Time / Skip Forward / Bake Items / 缓存与烘焙</td><td><a href="https://docs.blender.org/manual/en/latest/modeling/geometry_nodes/simulation/simulation_zone.html">docs.blender.org/manual/en/latest/modeling/geometry_nodes/simulation/simulation_zone.html</a></td></tr>
+    <tr><td>Blender 官方手册（中文镜像，4.2）</td><td>社区翻译</td><td>几何节点章节中文全量</td><td><a href="https://docs.blender.org/manual/zh-hans/4.2/modeling/geometry_nodes/index.html">docs.blender.org/manual/zh-hans/4.2/...</a> / <a href="https://node.blenderit.cn/">node.blenderit.cn</a></td></tr>
+    <tr><td>Blender 4.2 LTS 几何节点发行注记（官方）</td><td>官方发行注记</td><td>矩阵套件 / Realize 部分实现 / Menu Switch extend / 性能重写清单</td><td><a href="https://developer.blender.org/docs/release_notes/4.2/geometry_nodes/">developer.blender.org/docs/release_notes/4.2/geometry_nodes/</a></td></tr>
+    <tr><td>The Ultimate Blender 3D Geometry Nodes Course（Udemy · Alex Cordebard）</td><td>系统课程</td><td>54 小时 320 讲，逐节点全覆盖，项目制（城市/地形/树/龙/科幻走廊），兼容 Blender 5.1+</td><td><a href="https://www.udemy.com/course/geometry-nodes/">udemy.com/course/geometry-nodes/</a></td></tr>
+    <tr><td>GarageFarm 入门指南</td><td>教程文章</td><td>机制 + 五类几何组件 + 字段 / 属性 / 选择 + Group Inputs 暴露</td><td><a href="https://garagefarm.net/blog/blender-geometry-nodes">garagefarm.net/blog/blender-geometry-nodes</a></td></tr>
+    <tr><td>Learn Blender 初学者指南</td><td>教程文章</td><td>「工厂」心智模型 + 表面散射实战 + 五大必会节点</td><td><a href="https://learn-blender.org/blog/blender-geometry-nodes-beginners-guide">learn-blender.org/blog/blender-geometry-nodes-beginners-guide</a></td></tr>
+    <tr><td>CGWire 2026 指南</td><td>教程文章</td><td>节点分类学（Input / Output / Geometry / Mesh / Curve 工具箱）</td><td><a href="https://blog.cg-wire.com/blender-scripting-geometry-nodes/">blog.cg-wire.com/blender-scripting-geometry-nodes/</a></td></tr>
+    <tr><td>火星人教育 · 几何节点技能地图（中文）</td><td>学习路线图</td><td>从「数据流思维」新手村到大师塔的分站路径与避坑</td><td><a href="https://www.hxrwx.com/blender-geometry-nodes%e6%8a%80%e8%83%bd%e5%9c%b0%e5%9b%be%ef%bc%9a%e4%bb%8e0%e5%88%b01%e7%9a%84%e7%a8%8b%e5%ba%8f%e5%8c%96%e5%bb%ba%e6%a8%a1%e5%8d%87%e7%ba%a7%e8%b7%83%e8%b7%af">hxrwx.com（火星人教育）</a></td></tr>
+  </table>
+  <p><b>ComfyUI 节点图（官方文档全家桶 + 规范 + 系统教程）</b>：</p>
+  <table>
+    <tr><th>资源</th><th>类型</th><th>覆盖</th><th>链接</th></tr>
+    <tr><td>ComfyUI 官方文档（英 / 中）</td><td>官方文档</td><td>全节点参考 + 基础概念 + 教程 + <code>llms.txt</code> 全量索引</td><td><a href="https://docs.comfy.org/">docs.comfy.org</a> / <a href="https://docs.comfy.org/zh/">docs.comfy.org/zh</a></td></tr>
+    <tr><td>节点库（Node Library）官方页</td><td>官方文档</td><td>Essentials 精选（Inputs &amp; Outputs / Generate / Control &amp; Guidance / Editing &amp; Utilities）+ All nodes 全量 + 书签</td><td><a href="https://docs.comfy.org/interface/node-library">docs.comfy.org/interface/node-library</a></td></tr>
+    <tr><td>连线核心概念官方页（中）</td><td>官方文档</td><td>连线渲染样式（曲线/直角/直线/隐藏）/ Reroute / 颜色编码类型安全（数据类型-颜色对照）</td><td><a href="https://docs.comfy.org/zh/development/core-concepts/links">docs.comfy.org/zh/development/core-concepts/links</a></td></tr>
+    <tr><td>节点核心概念官方页（中）</td><td>官方文档</td><td>节点状态（正常/运行/错误/缺失）/ 节点徽章 / 连接规则</td><td><a href="https://docs.comfy.org/zh/development/core-concepts/nodes">docs.comfy.org/zh/development/core-concepts/nodes</a></td></tr>
+    <tr><td>自定义节点属性官方页（中，V1 规范）</td><td>官方文档</td><td>INPUT_TYPES / RETURN_TYPES / CATEGORY / FUNCTION / 执行控制属性 / 输入校验</td><td><a href="https://docs.comfy.org/zh/custom-nodes/backend/server_overview">docs.comfy.org/zh/custom-nodes/backend/server_overview</a></td></tr>
+    <tr><td>Workflow JSON 官方规范（ComfyWorkflow1_0）</td><td>官方规范</td><td>UI 格式 JSON Schema：nodes/inputs/outputs/groups/flags/widgets_values 全字段</td><td><a href="https://docs.comfy.org/specs/workflow_json">docs.comfy.org/specs/workflow_json</a></td></tr>
+    <tr><td>工作流 API 格式官方页（中）</td><td>官方文档</td><td>UI vs API 双格式对照 + <code>["节点id", 输出序号]</code> 连接语义 + 导出方法</td><td><a href="https://docs.comfy.org/zh/development/api-development/workflow-api-format">docs.comfy.org/zh/development/api-development/workflow-api-format</a></td></tr>
+    <tr><td>内置节点文档（逐节点页，如 BasicScheduler）</td><td>官方文档</td><td>每个内置节点的输入表（参数/类型/输入类型/默认值/范围）与输出表</td><td><a href="https://docs.comfy.org/zh/built-in-nodes/BasicScheduler">docs.comfy.org/zh/built-in-nodes/...</a></td></tr>
+    <tr><td>外观设置官方页（中）</td><td>官方文档</td><td>官方槽位色 hex 全表（CLIP #FFD500 / VAE #FF6E6E / LATENT #FF9CF9…）</td><td><a href="https://docs.comfy.org/zh/interface/appearance">docs.comfy.org/zh/interface/appearance</a></td></tr>
+    <tr><td>子图功能官方页（中 / 英）</td><td>官方文档</td><td>子图创建 / 编辑 / 插槽 / 嵌套 / 参数面板 / Bypass / Unpack / Blueprint 发布</td><td><a href="https://docs.comfy.org/zh/interface/features/subgraph">docs.comfy.org/zh/interface/features/subgraph</a></td></tr>
+    <tr><td>ComfyUI 源码仓库（GitHub · comfyanonymous）</td><td>官方源码</td><td>nodes.py（内置节点）/ comfy/comfy_types/（IO 类型系统）/ comfy_extras/（扩展节点）/ execution.py（执行引擎）</td><td><a href="https://github.com/comfyanonymous/ComfyUI">github.com/comfyanonymous/ComfyUI</a></td></tr>
+    <tr><td>ComfyUI 节点图基础教程（lilys.ai · 双语）</td><td>系统教程</td><td>Reroute / Get-Set / Frames / Subgraphs / App Mode / Templates-Blueprints-Workflows 三形态 / 10 秒原则</td><td><a href="https://lilys.ai/notes/en/comfyui-20260825/comfyui-tutorial-node-graph-basics">lilys.ai/notes/en/comfyui-20260825/comfyui-tutorial-node-graph-basics</a></td></tr>
+    <tr><td>ComfyUI Blog · Subgraphs 公告</td><td>官方博客</td><td>子图功能发布说明与设计动机</td><td><a href="https://blog.comfy.org/">blog.comfy.org</a></td></tr>
+  </table>
+  <p><b>流程图符号标准（ISO 5807 / ANSI）</b>：</p>
+  <table>
+    <tr><th>资源</th><th>类型</th><th>覆盖</th><th>链接</th></tr>
+    <tr><td>Flowchart Symbols Cheat Sheet（GraphMake · 交互式）</td><td>工具+参考</td><td>ISO 5807 全 22 符号交互速查（可按家族过滤、可复制 SVG）</td><td><a href="https://graphmake.com/tools/flowchart-symbols">graphmake.com/tools/flowchart-symbols</a></td></tr>
+    <tr><td>Flowchart Symbols Guide 2026（GraphMake）</td><td>教程文章</td><td>符号语义 + flowchart vs process map + Mermaid 流程图实例</td><td><a href="https://graphmake.com/blog/flowchart-symbols-guide">graphmake.com/blog/flowchart-symbols-guide</a></td></tr>
+    <tr><td>Introduction to Flowcharts（ALOUATIQ Labs）</td><td>教程文章</td><td>ISO 5807 常用符号 + 绘制要点 + 应用场景</td><td><a href="https://blog.alouatiq.com/introduction-flowcharts">blog.alouatiq.com/introduction-flowcharts</a></td></tr>
+    <tr><td>流程圖製作 12 符號 5 類型（ProjectManager 中文）</td><td>教程文章</td><td>ISO 5807 中文對照 + 5 條繪圖基本規則</td><td><a href="https://projectmanager.com.tw/%E5%B0%88%E6%A1%88%E7%AE%A1%E7%90%86/%E6%B5%81%E7%A8%8B%E5%9C%96-%E6%B5%81%E7%A8%8B%E5%9C%96%E8%A3%BD%E4%BD%9C-flow-chart">projectmanager.com.tw（專案管理）</a></td></tr>
+  </table>
+  <p><b>控制结构理论 / N-S 盒图 / UML 活动图 / 文本化图格式 / Blockly</b>：</p>
+  <table>
+    <tr><th>资源</th><th>类型</th><th>覆盖</th><th>链接</th></tr>
+    <tr><td>Mermaid Flowchart 官方文档</td><td>官方文档</td><td>形状全表 / classDef / 边类型 / subgraph / v11.3.0 统一形状语法 / v12.0.0 默认 ELK</td><td><a href="https://mermaid.js.org/syntax/flowchart.html">mermaid.js.org/syntax/flowchart.html</a></td></tr>
+    <tr><td>D2 Layouts 官方文档</td><td>官方文档</td><td>dagre / ELK / TALA 布局引擎与方向约束</td><td><a href="https://d2lang.com/tour/layouts">d2lang.com/tour/layouts</a></td></tr>
+    <tr><td>Graphviz DOT 语言官方定义</td><td>官方规范</td><td>文法 / cluster 为布局约定 / strict / HTML-like labels</td><td><a href="https://graphviz.org/doc/info/lang.html">graphviz.org/doc/info/lang.html</a></td></tr>
+    <tr><td>PlantUML Activity Diagram (beta) 官方文档</td><td>官方文档</td><td>if/switch/while/repeat/fork/split/partition/detach/kill/goto 结构化控制</td><td><a href="https://plantuml.com/activity-diagram-beta">plantuml.com/activity-diagram-beta</a></td></tr>
+    <tr><td>UML 2.5.1 活动图参考（uml-diagrams.org）</td><td>规范参考</td><td>token 流语义 / Fork-Join-Merge-Decision / 双终止 / 泳道</td><td><a href="https://www.uml-diagrams.org/activity-diagrams-reference.html">uml-diagrams.org/activity-diagrams-reference.html</a></td></tr>
+    <tr><td>OMG UML 2.5.1 规范</td><td>官方规范</td><td>活动图语义权威定义（条款 15，需核实章节号）</td><td><a href="https://www.omg.org/spec/UML/2.5.1">omg.org/spec/UML/2.5.1</a></td></tr>
+    <tr><td>Dijkstra EWD418（GCL 卫哨命令转录）</td><td>论文转录</td><td>guarded if/do 原文语义 + wp 演算</td><td><a href="https://raboof.github.io/ewd/EWD418.html">raboof.github.io/ewd/EWD418.html</a></td></tr>
+    <tr><td>Floyd 归纳断言法综述（arXiv 1904.03917）</td><td>论文</td><td>循环不变量 cut-point 图式表达</td><td><a href="https://arxiv.org/pdf/1904.03917v1">arxiv.org/pdf/1904.03917v1</a></td></tr>
+    <tr><td>Blockly 自定义块定义官方文档</td><td>官方文档</td><td>块 JSON 定义 / 类型化连接器 / message 插值 token</td><td><a href="https://developers.google.com/blockly/guides/create-custom-blocks/define/top-level-connections">developers.google.com/blockly/guides/create-custom-blocks/define/</a></td></tr>
+    <tr><td>FC2Code（EMNLP Findings 2022）</td><td>论文</td><td>流程图→伪码→代码两阶段编译</td><td><a href="https://aclanthology.org/2022.findings-emnlp.449">aclanthology.org/2022.findings-emnlp.449</a></td></tr>
+    <tr><td>Flowchart Symbols Cheat Sheet（GraphMake 交互式）</td><td>工具+参考</td><td>ISO 5807 全 22 符号可按家族过滤、可复制 SVG</td><td><a href="https://graphmake.com/tools/flowchart-symbols">graphmake.com/tools/flowchart-symbols</a></td></tr>
+  </table>
+  <div class="note"><b>四源合流的方法论</b>：流程图三大结构 + ISO 5807 符号给<b>控制流的完备性与形状语法</b>（判断菱形是唯一多出口符号；控制结构细分、GCL 卫哨、不变量切点、UML fork/join token 语义为理论加深）；Blender 几何节点给<b>接口与数据流语义</b>（Group 边界、字段三态懒求值、属性域、Zone 循环、实例引用、Subtype 分类学、5.x Bundles/Closures）；Blender 材质节点给<b>类型系统与合并语义</b>（socket 颜色/形状全局语义、隐式显式双层转换、Mix 能量守恒 vs Add 可破坏、能力声明与降级、Panels/Toggle 参数面板化、版本化参数集警示）；ComfyUI 给<b>组织术、执行引擎与契约化</b>（颜色编码、无线数据、子图折叠、节点五件套契约、UI/API 双格式、懒链接调度、指纹缓存、V3 schema 与 NodeReplace 迁移）。文本化图格式（Mermaid/D2/DOT/PlantUML）与 Blockly JSON round-trip 共同印证「文本=契约、渲染=呈现」。项目图 = 三大结构（控制流）+ 单 payload/data（最简数据流）+ unit 引用（复用）+ form 双态（类/对象）+ profile 隔离（对象独立性）+ 画布/契约两态双向编译（展示与执行分离又互通，ComfyUI 双格式与 Blockly 为工业实证）。</div>
+  <h2 id="c6">6 · API 接口参考</h2>
+  <p>共 <b>28 个 API 端点</b>（根 <code>/</code> 为页面）。鉴权：<code>AUTH_ENABLE=true</code> 时除 <code>/</code> / <code>/static</code> / <code>/api/status</code> 外全部需 <code>Authorization: Bearer &lt;token&gt;</code>。</p>
+  <table>
+    <tr><th>方法 / 路径</th><th>前端入口</th><th>说明</th></tr>
+    <tr><td><code>GET /api/status</code></td><td>顶栏通道/索引状态</td><td>返回通道、模型、索引条数、MCP 状态等</td></tr>
+    <tr><td><code>POST /api/ask</code></td><td>提问框</td><td>完整返回含 context / review 字段；经 AskLimiter，超限 429+Retry-After</td></tr>
+    <tr><td><code>POST /api/ask/stream</code></td><td>提问框（流式）</td><td>SSE 流式输出：meta→chunk*→done 事件；首帧 meta 先于生成、异常以 error 事件收尾；前端 50ms 渲染节流逐字呈现</td></tr>
+    <tr><td><code>GET /api/sources</code></td><td rowspan="5">知识库页</td><td>列出已导入来源（含角色、块数、状态）</td></tr>
+    <tr><td><code>POST /api/sources/url</code></td><td>导入网址（单站上限 6 页）</td></tr>
+    <tr><td><code>POST /api/sources/github</code></td><td>导入 GitHub 仓库（文档+源码）</td></tr>
+    <tr><td><code>POST /api/sources/upload</code></td><td>上传离线文档（50MB→413，ZIP 炸弹防护）</td></tr>
+    <tr><td><code>DELETE /api/sources/{source_id}</code></td><td>删除来源（过滤条件按 LanceDB struct 路径）</td></tr>
+    <tr><td><code>POST /api/sources/preset</code></td><td>设置/知识库「预装权威资料源」按钮</td><td>触发预置源导入（幂等）</td></tr>
+    <tr><td><code>GET /api/profile?session_id=</code></td><td>画像页</td><td>等级、累计交互、长期记忆快照、当前会话画像</td></tr>
+    <tr><td><code>GET /api/evolution</code></td><td rowspan="2">能力进化页</td><td>技能沉淀 / 反思记录</td></tr>
+    <tr><td><code>POST /api/evolution/feedback</code></td><td>反馈教学（失败如实返回 <code>{ok:false,error}</code>，不谎报）</td></tr>
+    <tr><td><code>GET /api/memory/export</code></td><td>画像页</td><td>导出长期记忆（带 Mem0 id，供单条删除 / 备份）</td></tr>
+    <tr><td><code>DELETE /api/memory/{mem_id}</code></td><td>画像页</td><td>删除单条长期记忆（id 取自 export / profile）</td></tr>
+    <tr><td><code>GET /api/cost</code></td><td>设置页成本面板</td><td>读嵌入缓存统计：已落盘向量数、按模型分布、估算节省 token（零触网）</td></tr>
+    <tr><td><code>GET /api/capabilities</code></td><td>设置页预留入口面板</td><td>百炼 11 项能力 + 协议层开关实时状态</td></tr>
+    <tr><td><code>GET /api/plugins</code></td><td rowspan="2">设置页插件管理面板</td><td>23 个插件清单 + 运行时状态（enabled / env_blocked）+ 汇总计数</td></tr>
+    <tr><td><code>POST /api/plugins/{id}</code></td><td>用户态开关单个插件（body <code>{enabled:bool}</code>）；未知 id→404、空壳入口→400、坏体→422</td></tr>
+    <tr><td><code>GET /api/market</code></td><td rowspan="3">设置页插件市场面板（本地上传导入）</td><td>货架视图：平台版本 + 三类货架（plugin/agent/team）已安装清单（含 enabled/env_blocked/registered）</td></tr>
+    <tr><td><code>POST /api/market/upload</code></td><td>上传 <code>plugin.json</code> 或 zip 包导入安装；schema + min_platform + dependencies 三重门禁不过 → 400 不落盘</td></tr>
+    <tr><td><code>DELETE /api/market/units/{id}</code></td><td>卸载市场安装的 unit（仅 units.lock 账本内；内置/示例 → 400 拒卸）</td></tr>
+    <tr><td><code>GET /api/editor/templates</code></td><td rowspan="4">「编排 Beta」节点编辑器（画一张图 → 导出可运行 unit）</td><td>模板：minimal 三节点链 + encyclopedia 13 节点成品图 + 六类节点类型说明</td></tr>
+    <tr><td><code>POST /api/editor/validate</code></td><td>校验画布图（结构 + condition/expr 语法 + 引用存在性；只查不执行），错误列表随好/坏图返回</td></tr>
+    <tr><td><code>POST /api/editor/export</code></td><td>导出 unit 包 zip（与市场上传同格式：根 plugin.json + 资源）；图校验/manifest 契约不过 → 400</td></tr>
+    <tr><td><code>POST /api/editor/install</code></td><td>直装为可运行 unit（走市场同一通道：schema + 版本门禁 + 双注册 + 账本），装完 GraphRuntime 可解释执行</td></tr>
+    <tr><td><code>GET /api/mcp</code></td><td>设置页 MCP 面板</td><td>3 个 server 连接状态灯 + 工具 chips</td></tr>
+    <tr><td><code>POST /api/backup/export</code></td><td rowspan="2">设置页备份卡片</td><td>白名单打包导出 zip（排除 token/logs/旧 chroma）</td></tr>
+    <tr><td><code>POST /api/backup/import</code></td><td>恢复（恢复前自动快照可回滚）</td></tr>
+  </table>
+  <div class="note"><b>历史注记</b>：早期文档写「14 端点」，后新增 <code>/api/sources/preset</code> 预置功能升至 15；再经 F1–F7 增强新增 <code>/api/ask/stream</code> · <code>/api/memory/export</code> · <code>DELETE /api/memory/{mem_id}</code> · <code>/api/cost</code>；P6 插件化新增 <code>/api/plugins</code> · <code>POST /api/plugins/{id}</code>，P6 市场新增 <code>/api/market</code> · <code>POST /api/market/upload</code> · <code>DELETE /api/market/units/{id}</code>，P7 节点编辑器新增 <code>GET /api/editor/templates</code> · <code>POST /api/editor/validate</code> · <code>POST /api/editor/export</code> · <code>POST /api/editor/install</code>，现实际为 28 个 API。本表以 <code>app.py</code> 实测路由为准。</div>
+
+  <h2 id="c7">7 · CLI 命令参考</h2>
+  <p>运行方式：<code>python3 -m pypedia.cli &lt;命令&gt;</code>（typer 框架，自带 --help / 校验 / 补全）。</p>
+  <table>
+    <tr><th>命令</th><th>作用</th><th>备注</th></tr>
+    <tr><td><code>ask</code></td><td>单次问答</td><td>命令行直接提问</td></tr>
+    <tr><td><code>chat</code></td><td>多轮交互问答</td><td>连续对话</td></tr>
+    <tr><td><code>status</code></td><td>查看运行配置</td><td>打印通道/模型/各开关</td></tr>
+    <tr><td><code>memory-migrate</code></td><td>旧 chroma 记忆 → qdrant</td><td>一次性、幂等</td></tr>
+    <tr><td><code>backup-export -o bk.zip</code></td><td>导出数据备份</td><td>白名单打包</td></tr>
+    <tr><td><code>backup-import bk.zip</code></td><td>恢复数据</td><td>恢复前自动快照</td></tr>
+    <tr><td><code>preset-list</code></td><td>列出预置权威资料源</td><td>Python 官方文档/CPython/官方论坛</td></tr>
+    <tr><td><code>preset-import [--force]</code></td><td>导入预置源</td><td>幂等；--force 强制重抓</td></tr>
+  </table>
+
+  <h2 id="c8">8 · 配置项全表（.env）</h2>
+  <p>所有配置来自 <code>config.py</code>（pydantic-settings + python-dotenv），密钥只来自 .env / 环境变量，<b>绝不硬编码</b>。下表为完整配置项（默认值以 config.py 为准，.env 留空即用默认）。</p>
+  <table>
+    <tr><th>分组</th><th>变量</th><th>默认</th><th>说明</th></tr>
+    <tr><td rowspan="7">LLM 通道</td><td><code>LLM_PROVIDER</code></td><td>bailian</td><td>bailian | mock；缺密钥自动降级 mock</td></tr>
+    <tr><td><code>BAILIAN_API_KEY</code></td><td>""</td><td>兼容 <code>DASHSCOPE_API_KEY</code>，任填其一</td></tr>
+    <tr><td><code>BAILIAN_BASE_URL</code></td><td>dashscope 兼容-mode/v1</td><td>OpenAI 兼容端点</td></tr>
+    <tr><td><code>BAILIAN_MODEL</code></td><td>qwen-plus</td><td>主生成模型</td></tr>
+    <tr><td><code>BAILIAN_TEMPERATURE</code></td><td>0.3</td><td>生成温度</td></tr>
+    <tr><td><code>BAILIAN_MAX_TOKENS</code></td><td>1500</td><td>单次生成上限</td></tr>
+    <tr><td><code>OLLAMA_HOST</code> / <code>OLLAMA_MODEL</code></td><td>11434 / qwen2.5-coder:7b</td><td>仅 ollama 通道用</td></tr>
+    <tr><td rowspan="3">重试</td><td><code>LLM_MAX_RETRIES</code></td><td>3</td><td>总尝试含首次，即最多重试 2 次</td></tr>
+    <tr><td><code>LLM_RETRY_BACKOFF</code></td><td>1.0</td><td>首次退避秒，之后 ×2（1→2→4）</td></tr>
+    <tr><td colspan="3" style="color:var(--muted)">仅重试连接错误/超时/429/5xx；<span class="bad">4xx 不重试</span>（避免浪费配额）</td></tr>
+    <tr><td rowspan="2">日志</td><td><code>LOG_LEVEL</code></td><td>INFO</td><td>DEBUG|INFO|WARNING|ERROR</td></tr>
+    <tr><td><code>LOG_DIR</code></td><td>数据目录/logs</td><td>留空=数据目录下 logs/</td></tr>
+    <tr><td rowspan="3">ask 配额</td><td><code>MAX_CONCURRENT_ASK</code></td><td>2</td><td>同时处理上限，其余排队</td></tr>
+    <tr><td><code>ASK_RATE_PER_MIN</code></td><td>10</td><td>60s 滑窗上限</td></tr>
+    <tr><td><code>ASK_QUEUE_TIMEOUT</code></td><td>30.0</td><td>排队超时返回 429</td></tr>
+    <tr><td rowspan="2">鉴权</td><td><code>AUTH_ENABLE</code></td><td>false</td><td>true=除 /、/static、/api/status 外全需令牌</td></tr>
+    <tr><td><code>AUTH_TOKEN</code></td><td>""</td><td>留空用数据目录 token 文件（首次启用自动生成，权限 600）</td></tr>
+    <tr><td rowspan="4">检索 / 抓取</td><td><code>TOP_K_PER_STAGE</code></td><td>3</td><td>每路（向量/BM25）候选数</td></tr>
+    <tr><td><code>FETCH_TIMEOUT</code></td><td>6.0</td><td>网页抓取超时；不可达降级本地语料</td></tr>
+    <tr><td><code>ENABLE_WEB_FETCH</code></td><td>false</td><td>true=允许抓取导入的网址</td></tr>
+    <tr><td><code>PRESET_SOURCES_ENABLE</code></td><td>true</td><td>true=首次启动后台导入预置源（需配合 ENABLE_WEB_FETCH=true 才真实抓取）</td></tr>
+    <tr><td rowspan="4">极端防护</td><td><code>MAX_UPLOAD_MB</code></td><td>50.0</td><td>单文件上限，超限 413</td></tr>
+    <tr><td><code>MAX_QUERY_CHARS</code></td><td>4000</td><td>单次提问上限，超出截断</td></tr>
+    <tr><td><code>PARSE_TIMEOUT</code></td><td>120.0</td><td>离线文档解析超时，超时放弃</td></tr>
+    <tr><td><code>MAX_PAGES_PER_SITE</code></td><td>6</td><td>单站抓取页数上限</td></tr>
+    <tr><td rowspan="3">长上下文</td><td><code>CONTEXT_TOKEN_BUDGET</code></td><td>6000</td><td>会话 token 预算</td></tr>
+    <tr><td><code>CONTEXT_KEEP_TURNS</code></td><td>4</td><td>超预算始终完整保留的最近轮数</td></tr>
+    <tr><td><code>CONTEXT_SUMMARY_TRIGGER</code></td><td>8</td><td>超过 N 轮触发滚动摘要</td></tr>
+    <tr><td rowspan="3">本地重排</td><td><code>RERANK_LOCAL_ENABLE</code></td><td>true</td><td>false 只用向量分数</td></tr>
+    <tr><td><code>RERANK_LOCAL_MODEL</code></td><td>BAAI/bge-reranker-base</td><td>1.1GB；可换 v2-m3（2.2GB）</td></tr>
+    <tr><td><code>HF_ENDPOINT</code></td><td>hf-mirror.com</td><td>HF 国内镜像；海外可删</td></tr>
+    <tr><td rowspan="4">MCP 协议层</td><td><code>MCP_ENABLE</code></td><td>true</td><td>总开关；Node 缺失自动降级</td></tr>
+    <tr><td><code>MCP_FS_DIR</code></td><td>""</td><td>filesystem 授权目录，缺省=数据目录</td></tr>
+    <tr><td><code>MCP_FETCH_ENABLE</code></td><td>true</td><td>fetch server（网页正文）</td></tr>
+    <tr><td><code>MCP_THINKING_ENABLE</code></td><td>true</td><td>sequential-thinking（复杂问题分步）</td></tr>
+    <tr><td rowspan="2">答案二审</td><td><code>REVIEW_ENABLE</code></td><td>true</td><td>关闭后仅置信度</td></tr>
+    <tr><td><code>REVIEW_MODEL</code></td><td>""</td><td>缺省用 BAILIAN_MODEL；可设 qwen-max</td></tr>
+    <tr><td>百炼预留入口</td><td><code>BAILIAN_*_MODEL</code></td><td>多行（默认注释）</td><td>RERANK/DECISION/CODER/MATH/VISION/T2I/TTS/ASR/EMBED_V4，开通后取消注释即生效</td></tr>
+  </table>
+
+  <h2 id="c9">9 · 前端与渲染管线</h2>
+  <h3>9.1 页面与数据来源</h3>
+  <table>
+    <tr><th>页面</th><th>内容</th><th>数据来源</th></tr>
+    <tr><td>启动 / 等级选择</td><td>选 1–5 档 Python 熟练度</td><td>本地</td></tr>
+    <tr><td>智能问答</td><td>真实调用百炼；多轮+长上下文压缩；Markdown + mermaid + ECharts + KaTeX + hljs；双模型二审；MCP 分步；置信度</td><td>真实引擎</td></tr>
+    <tr><td>检索过程</td><td>三级级联可视化 + 置信度拆解</td><td>真实引擎</td></tr>
+    <tr><td>知识库</td><td>导入网址/GitHub/离线文档，实时向量化参与级联</td><td>真实引擎</td></tr>
+    <tr><td>我的画像</td><td>等级、累计交互、长期记忆快照、当前会话画像</td><td>Mem0 + 百炼 + jieba</td></tr>
+    <tr><td>自进化</td><td>技能沉淀 / 反思记录 / 反馈教学</td><td>Reflexion + Voyager</td></tr>
+    <tr><td>设置</td><td>通道/模型/密钥/上下文预算/本地重排/二审 + 访问鉴权 + 数据备份 + 预留入口面板 + MCP 真实连接状态</td><td>真实 API</td></tr>
+  </table>
+  <blockquote><code>ui-prototype.html</code> 仍是<b>纯设计画板</b>（8 页全交互，双击即开），用于 UI/动画打磨，与真实前端 <code>static/index.html</code> 分工，不参与运行。</blockquote>
+  <h3>9.2 渲染管线（安全要点）</h3>
+  <pre><code>marked 18（GFM）→ DOMPurify 3（剥 &lt;script&gt;/onerror，ADD_ATTR class/target/rel）
+→ 代码块后处理：mermaid→div.mermaid / chart→div.chart[data-option] / 其余 hljs + 复制按钮
+→ renderMath（TreeWalker 文本节点，$...$/$$...$$ 带防货币误伤启发式，
+   跳过 PRE/CODE/.katex/.mermaid/.chart）→ ECharts init（sanitizeChartOption 递归剥 formatter 字符串 HTML）
+→ mermaid.run</code></pre>
+  <p><b>XSS 双保险</b>：DOMPurify 剥除 <code>&lt;script&gt;</code> 与 <code>onerror</code>；ECharts tooltip formatter 字符串再剥 HTML 标签，防注入。</p>
+
+  <h2 id="c10">10 · 知识库与预装资料源</h2>
+  <h3>10.1 支持的文件格式</h3>
+  <p>PDF（pypdfium2）、DOCX（mammoth）、EPUB（ebooklib）、PPTX（python-pptx）、XLSX（openpyxl）、HTML/网页（trafilatura）、Markdown。上传经流式大小检查 + ZIP 炸弹 100:1 检测 + 解析线程池 120s 超时墙。</p>
+  <h3>10.2 三级级联的角色定义</h3>
+  <ul>
+    <li><b>main（主要）</b>：用户指定的库官方主站文档——答案以主源为准。</li>
+    <li><b>supplement_a（补充 A）</b>：GitHub 文档与源码——佐证与边界场景。</li>
+    <li><b>supplement_b（补充 B）</b>：离线文档 + 权威论坛——补充边界。</li>
+  </ul>
+  <h3>10.3 预装权威资料源（默认即开箱可用）</h3>
+  <p><code>data/preset_sources.json</code> 预置 9 项：Python 官方文档（教程/内置/asyncio/语言参考）、CPython 官方 GitHub 仓库、官方论坛（discuss.python.org）、StackOverflow 等。特点：</p>
+  <ul>
+    <li><b>双开关</b>：<code>PRESET_SOURCES_ENABLE</code>（总闸）+ <code>ENABLE_WEB_FETCH</code>（抓取闸）。离线（抓取关闭）下不污染知识库，内置 <code>corpus.json</code> 仍兜底。</li>
+    <li><b>幂等 + 隔离</b>：首次启动后台 daemon 真实抓取；单源失败不影响其余源、绝不阻塞启动；清单 filelock 原子替换。</li>
+    <li><b>可编辑</b>：不硬编码，可在设置页 / CLI 一键 <code>preset-import</code> 或编辑 JSON 增删来源。</li>
+  </ul>
+
+  <h2 id="c11">11 · 记忆与自进化</h2>
+  <h3>11.1 长期记忆（Mem0 + qdrant 本地模式）</h3>
+  <ul>
+    <li>全权负责抽取 / 去重 / 冲突解决；按 query 语义检索注入相关画像（非全量倾倒）。</li>
+    <li>存量 chroma 数据可通过 <code>memory-migrate</code> 幂等迁移到 qdrant（实测 20/20 读回一致）。</li>
+    <li>无百炼密钥时优雅降级「无记忆」模式。</li>
+  </ul>
+  <h3>11.2 自进化（Reflexion + Voyager，冻结权重）</h3>
+  <ul>
+    <li><b>Reflexion 内循环</b>：失败诊断写 JSON buffer，recent()/summary() 注入 prompt。</li>
+    <li><b>Voyager 外循环</b>：skill 库（name/trigger/action），从会话画像自动归纳。</li>
+    <li><b>四杠杆</b>：prompt / skill / 工具列表 / 检索语料——模型权重始终冻结。</li>
+  </ul>
+
+  <h2 id="c12">12 · 扩展开发指南</h2>
+  <p>本项目的扩展设计为「<b>登记即生效</b>」，几乎不需要改主干代码。</p>
+  <h3>12.1 接入新百炼模型</h3>
+  <p>在 <code>models/registry.py</code> 的能力注册表（已含 11 项：embed/chat/rerank/decision/code/math/vision/t2i/tts/asr/embed_v4）中登记，填好「环境变量覆盖位 + 降级链 + 运行时探测」三项；在 <code>.env</code> 取消注释对应的 <code>BAILIAN_*_MODEL</code>，开通后零改代码生效。前端设置页经 <code>/api/capabilities</code> 实时展示。</p>
+  <h3>12.2 新增 MCP server</h3>
+  <ul>
+    <li>在 <code>mcp_client.py</code> 增加 server 启动与 client session；在 <code>capabilities/__init__.py</code> 登记开关（含真实连接探测）。</li>
+    <li>Node server 需 npx；Python server 需对应包。起不来只降级该项。</li>
+  </ul>
+  <h3>12.3 新增知识来源类型</h3>
+  <p>继承 <code>ingest/strategies.py</code> 的 <code>IngestStrategy</code>，实现「抓什么 / 怎么失败降级」即可，共享流程（角色归一、文档组装、清单登记、索引写入与块数回填）已上提。参考 <code>UrlStrategy</code> / <code>GithubStrategy</code> / <code>FileStrategy</code>。</p>
+  <h3>12.4 新增 API 端点</h3>
+  <p>在 <code>app.py</code> 增加路由；若需鉴权，确保中间件链顺序正确（request_log 最外、auth_guard 内层）；若涉及费用，挂到 AskLimiter 配额门。</p>
+
+  <h2 id="c13">13 · 安全与极端场景防护</h2>
+  <table>
+    <tr><th>场景</th><th>措施</th></tr>
+    <tr><td>超长提问</td><td><code>MAX_QUERY_CHARS=4000</code> 截断</td></tr>
+    <tr><td>超大上传</td><td>流式检查 50MB → 413</td></tr>
+    <tr><td>ZIP 炸弹</td><td>解压比 100:1 检测</td></tr>
+    <tr><td>解析卡死</td><td><code>PARSE_TIMEOUT=120s</code> 线程池超时墙</td></tr>
+    <tr><td>上下文膨胀</td><td>token 预算 + 滑窗 + 滚动摘要</td></tr>
+    <tr><td>多轮过多</td><td><code>CONTEXT_SUMMARY_TRIGGER=8</code> 触发摘要</td></tr>
+    <tr><td>会话泄漏</td><td>SESSIONS 上限 100</td></tr>
+    <tr><td>数据并发写</td><td>filelock + <code>os.replace</code> 原子替换</td></tr>
+    <tr><td>抓取失控</td><td><code>MAX_PAGES_PER_SITE=6</code> + <code>FETCH_TIMEOUT=6s</code></td></tr>
+    <tr><td>MCP 退出慢</td><td>每 server 5s / 总 25s 优雅关闭</td></tr>
+    <tr><td>LLM 抖动</td><td>统一重试连接错误/超时/429/5xx 指数退避（默认 3 次），4xx 不重试</td></tr>
+    <tr><td>打爆服务</td><td>AskLimiter 并发 2 + 60s 滑窗 10 次/分，429 + Retry-After</td></tr>
+    <tr><td>未授权访问</td><td>Bearer Token 常量时间比较；令牌文件 600；启动确保令牌存在并打印来源</td></tr>
+    <tr><td>恶意备份 zip</td><td>白名单打包 + resolve 后校验路径前缀（防 Zip Slip）+ 恢复前 rollback 快照</td></tr>
+    <tr><td>XSS</td><td>DOMPurify 剥 &lt;script&gt;/onerror；ECharts formatter 字符串再剥 HTML</td></tr>
+  </table>
+
+  <h2 id="c14">14 · 测试与 CI</h2>
+  <ul>
+    <li><b>规模</b>：tests/ 38 文件 <b>741 用例</b>，~46s 全绿。</li>
+    <li><b>零真实 LLM</b>：conftest 隔离 <code>PYPEDIA_DATA</code> 到临时目录、MockEmbedding 替换真实嵌入、MemoryStore/MCP 打桩；清空密钥跑同样全绿（<code>BAILIAN_API_KEY= pytest</code>）。</li>
+    <li><b>分层覆盖</b>：纯函数（分词/等级/token/rerank 双路径）→ IO（7 格式解析/ZIP 炸弹/LanceDB 增删查）→ 编排（review 六分支/engine 全链路/端点边界）→ 基建（重试/日志/配额/鉴权/备份/基准）→ 插件平台（schema 契约/图引擎/规则引擎/市场/节点编辑器）。</li>
+    <li><b>端到端冒烟</b>：<code>scripts/e2e_*.py</code> 真实子进程/浏览器级验收（市场 14 项、图表渲染浏览器级、节点编辑器 API 级 17 项 + 浏览器级 9 项）。</li>
+    <li><b>测试逼出并修复 6 个潜伏 bug</b>：① rerank_local 语法错误；② 摘要上限固定 2000 字符；③ rag.add 无幂等 + delete_source 过滤失效；④ reasoning_plan 被 MCP 便笺失败吞掉；⑤ 节点图 ref 约定三处漂移（运行时读节点级 ref、校验器读 params.ref、编辑器发 params.ref——画布图校验过却跑不了，内置模板反而校验不过；已修为双位置容错 + 导出归一 + P7 测试锁定）；⑥ 单 Agent 成品 <code>confidence</code> 处理器 import 路径写错（<code>pypedia.engine.models</code> → <code>pypedia.models</code>）且多传一个参数、降级分 50≠旧架构 55——真实测试①进程内跑崩整条图（既有测试整体 mock 了该 handler，错误 import 从未执行，已补「不打桩 handler 只打桩被 import 函数」的回归测试锁定）。浏览器级验收另逼出编辑器两处交互 bug（linkdot 拖拽连线建不了边、`.card` auto 边距致画布塌缩 300px，均已修）。</li>
+    <li><b>真实测试（真实 LLM，非打桩）</b>：<code>scripts/e2e_real_consistency.py</code> 旧架构 <code>engine.ask</code> vs 新架构单 Agent 图执行（GraphRuntime 解释 python-encyclopedia 13 节点图）一致性对比——同一问题集两条链路各跑，比对答案/检索命中/首要证据/置信度/分步计划/记忆与自进化节点；内置 LLM 通道探测，<b>live 模式</b>（额度可用）严格对比长度量级与关键词覆盖，<b>degraded 模式</b>（如免费额度耗尽）验证降级一致性。<code>scripts/e2e_real_fullchain.py</code> 新架构全链路：真实 uvicorn 子进程 + 真实 LLM，status → units（25 单元 + 13 节点图）→ ask → agent/step → editor 校验/导出/安装 → market 货架/卸载 → 前端资产，14 项。</li>
+    <li><b>CI</b>：<code>.github/workflows/ci.yml</code> 在 push/PR 自动 <code>pytest -m "not network"</code>。</li>
+  </ul>
+
+  <h2 id="c15">15 · 运维与故障排查</h2>
+  <h3>15.1 常用运维命令</h3>
+  <pre><code>python3 -m pypedia.cli memory-migrate      # 旧 chroma 记忆迁移 qdrant（幂等）
+python3 -m pypedia.cli backup-export -o bk.zip   # 导出备份
+python3 -m pypedia.cli backup-import bk.zip      # 恢复（前自动快照）
+python3 -m pypedia.cli preset-list              # 列出预置权威源
+python3 -m pypedia.cli preset-import [--force]   # 导入预置源（幂等）</code></pre>
+  <h3>15.2 常见问题排查</h3>
+  <table>
+    <tr><th>现象</th><th>原因 / 处理</th></tr>
+    <tr><td>MCP 工具不可用</td><td>Node 缺失或 server 起不来 → 自动降级该项，检查 Node/npx 与对应包；看 <code>/api/mcp</code> 状态灯</td></tr>
+    <tr><td>记忆列表恒空</td><td>mem0 2.2.x 契约变更：禁用顶层 <code>user_id</code>，须 <code>filters={"user_id":...}</code>；<code>search</code> 的 limit 更名 <code>top_k</code>（已修）</td></tr>
+    <tr><td>云端精排不生效</td><td>百炼 rerank 响应结构为 <code>output.results</code>（非旧 <code>data.rerank</code>）；读错会静默降级本地（已修双路径）</td></tr>
+    <tr><td>能力开关误判关闭</td><td>勿用 <code>os.getenv</code> 读 Settings 默认值（.env 未显式写的键不进 environ），统一走 <code>settings</code></td></tr>
+    <tr><td>预置源未入库</td><td>需 <code>ENABLE_WEB_FETCH=true</code> 且 <code>PRESET_SOURCES_ENABLE=true</code> 才会真实抓取；离线时以内置 corpus.json 兜底</td></tr>
+    <tr><td>401 拒绝未记录</td><td>确认中间件顺序：request_log 注册在 auth_guard 之后，401 才被请求日志记录</td></tr>
+  </table>
+  <div class="note"><b>鉴权开启</b>：<code>.env</code> 设 <code>AUTH_ENABLE=true</code> 并重启，令牌自动生成于数据目录 <code>token</code> 文件（权限 600，也可用 <code>AUTH_TOKEN</code> 指定）；浏览器端在设置页「访问鉴权」卡片保存令牌，所有 /api 请求自动带头。</div>
+
+  <h2 id="c16">16 · 设计决策与选型依据</h2>
+  <h3>16.1 砍掉的自造模块（重复造轮子）</h3>
+  <table>
+    <tr><th>原自写</th><th>现成熟轮子</th></tr>
+    <tr><td>knowledge/crawler.py 爬虫</td><td>trafilatura + MCP fetch server</td></tr>
+    <tr><td>knowledge/chunker.py 切分</td><td>LlamaIndex SentenceSplitter</td></tr>
+    <tr><td>knowledge/parsers.py</td><td>pypdfium2 / mammoth / trafilatura / ebooklib</td></tr>
+    <tr><td>knowledge/store.py chromadb</td><td>LanceDB（chroma 生态收缩）</td></tr>
+    <tr><td>retrieval/confidence.py 自写加权</td><td>百炼 evaluate_confidence</td></tr>
+    <tr><td>retrieval/sources.py 自写分词</td><td>BM25Retriever(bm25s+jieba) + QueryFusionRetriever</td></tr>
+    <tr><td>规则画像 + chroma 记忆</td><td>Mem0</td></tr>
+    <tr><td>llm/ 多适配器 + litellm</td><td>models/dashscope.py（openai SDK）+ registry.py</td></tr>
+    <tr><td>evolution/ 自写训练 loop</td><td>Reflexion + Voyager 薄层（不微调）</td></tr>
+    <tr><td>config.py 手写 .env 解析</td><td>pydantic-settings + python-dotenv</td></tr>
+    <tr><td>cli.py argparse</td><td>typer</td></tr>
+    <tr><td>前端 30 行正则 md()</td><td>marked + DOMPurify + mermaid + ECharts + KaTeX + hljs</td></tr>
+  </table>
+  <p><b>保留自写</b>（无现成轮子、纯产品逻辑）：等级适配、级联主/辅判别、长上下文规划、二审提示词、进化薄层、FastAPI、前端 UI。</p>
+  <h3>16.2 调研踩坑记录（选型实证）</h3>
+  <ol>
+    <li><b>mcp 2.x 与官方 fetch server 互斥</b>：fetch server 锁 <code>mcp&lt;2,>=1.29</code>，且异常类名不同（McpError vs MCPError）→ 选 mcp 1.30.0 全家桶。</li>
+    <li><b>LanceDB 替 chroma 迁移 bug</b>：旧迁移代码找三张表但实际单 collection（role 在 metadata）→ 按 metadata 分组重迁（9 节点无损）。</li>
+    <li><b>highlight.js 11 npm 不再预构建浏览器包</b> → 从 cdnjs 下载官方构建。</li>
+    <li><b>KaTeX auto-render 仅 .ts 源码</b> → 手写 renderMath（TreeWalker + katex.renderToString）+ 货币防误伤启发式。</li>
+    <li><b>run_until_complete 事件循环停转</b> → MCP 客户端必须 run_forever() 保活。</li>
+    <li><b>百炼 rerank 响应结构</b>：实测 <code>output.results</code>（旧文档写 data.rerank 会 KeyError 静默降级），已修双路径。</li>
+    <li><b>能力开关误判关闭</b>：os.getenv 读不到 Settings 默认值 → 统一改走 settings。</li>
+    <li><b>mem0 2.2.1 契约变更</b>：禁用顶层 user_id，search 的 limit 更名 top_k（旧调用被 except 静默吞致记忆恒空，已修）。</li>
+    <li><b>mem0 qdrant 细节</b>：insert 的 vectors 是「向量的列表」而 search 是扁平向量；id 须合法 UUID。</li>
+    <li><b>Starlette 中间件顺序</b>：最后注册的最外层——request_log 注册在 auth_guard 之后，401 才被日志记录。</li>
+    <li><b>前端 script 拆分 TDZ</b>：经典 script 共享全局但 let/const 有临时死区，共享状态须前置 util.js。</li>
+    <li><b>CrewAI / 工作流框架复评</b>：用户提议改 CrewAI「流程」。横评结论——知识库问答 LangGraph &gt; LlamaIndex Workflows &gt; CrewAI（CrewAI 生产稳定性最低、自决调用致 LLM 调用成倍增长且不确定）。实测 llama-index-workflows 2.x 事件校验有类身份 bug 且改造为负压缩。<b>决定保持 engine.ask() 线性管道</b>不强行换框架；整改落在 tenacity / python-json-logger 替换手写，以及 ingest 拆策略类。</li>
+  </ol>
+
+  <h2 id="c17">17 · 交互增强功能（F1–F7）</h2>
+  <p>在「零真实调用」铁律下交付的 7 项交互增强，全部经 <b>254 例</b>自动化用例覆盖（conftest 桩 + MockEmbedding + 打桩，零触网）。每项配一条用户可见验收。</p>
+  <table>
+    <tr><th>编号</th><th>功能</th><th>实现要点</th><th>用户可见验收</th></tr>
+    <tr><td>F1</td><td>SSE 流式输出</td><td><code>models/dashscope.py:chat_stream</code> 解析 SSE 增量；<code>engine.ask_stream</code> 抽出 <code>_prepare/_finalize</code> 共用编排，协议 meta→chunk*→done；<code>/api/ask/stream</code> 用 <code>StreamingResponse</code>，首帧 meta 先于生成、异常以 error 事件收尾；前端 chat.js 50ms 渲染节流</td><td>curl 可见逐字返回（HTTP 头 no-cache / x-accel-buffering:no）</td></tr>
+    <tr><td>F2</td><td>Cmd/Ctrl+K 命令面板</td><td><code>static/js/palette.js</code> 全局搜索 / 跳转 / 执行；↑↓/Enter/Esc 操作；跳转 8 页 + 切等级 + 新建对话；依赖 app.js 抽出的 <code>goPage/setLevel</code></td><td>按 ⌘K 可搜索并跳转页面</td></tr>
+    <tr><td>F3</td><td>导出 / 分享</td><td><code>static/js/export.js</code>：MD / 内联 CSS 的离线 HTML / PNG（SVG foreignObject 截图）；只读分享链接把对话 JSON 编码进 <code>location.hash</code>，打开即只读渲染，无需后端</td><td>导出的 HTML 离线双击可打开</td></tr>
+    <tr><td>F4</td><td>记忆查看 / 删除 / 导出</td><td><code>memory_store.memory_items</code> 暴露带 id 的记忆；<code>GET /api/memory/export</code> 导出、<code>DELETE /api/memory/{mem_id}</code> 删除；画像页单条删除 + 导出按钮</td><td>画像页可见并删除单条记忆</td></tr>
+    <tr><td>F5</td><td>引用溯源</td><td>答案下方「引用来源」面板：级联检索 chunk 自带 <code>url/title/role</code>，逐条可点击跳转原文</td><td>答案引用可点开到来源文档</td></tr>
+    <tr><td>F6</td><td>新手引导 + 错误人话化</td><td>三步引导（选水平→了解能力→首问自动发送）；<code>util.humanError</code> 把网络 / 鉴权 / 超时等映射为中文友好提示；后端 502 与流错误事件同样中文化</td><td>首次启动 3 步内完成一次提问</td></tr>
+    <tr><td>F7</td><td>成本 / token 面板</td><td><code>embed_cache.global_stats()</code> 跨进程只读 SQLite（零触网）统计已落盘向量数、按模型分布、估算节省 token；<code>GET /api/cost</code> 暴露；设置页展示模型通道与节省量</td><td>设置页可见 token 消耗与节省</td></tr>
+  </table>
+  <div class="note"><b>额度纪律</b>：嵌入一律走 <code>EMBED_CACHE_DIR</code> 磁盘缓存（<code>embed_cache.CachedDashScopeEmbedding</code>），命中即免一次百炼调用；任何真实调用动作（ingest/re-embed/ask）须经用户确认；额度异动记 1.1 issue，不阻塞开发。</div>
+
+  <h2 id="c18">18 · 演进记录与路线图</h2>
+  <h3>18.1 「万物皆插件」重构时间线（P1–P7 + 图系统规范，全部经测试门禁交付）</h3>
+  <table>
+    <tr><th>阶段</th><th>日期</th><th>交付要点</th></tr>
+    <tr><td>P1 契约统一</td><td>2026-10-21</td><td>23 项内置 manifest 唯一真值源 <code>units/builtins.py</code>；<code>PluginRegistry</code> 成为 <code>UnitRegistry</code> 兼容子类；<code>/api/units</code> 新契约视图</td></tr>
+    <tr><td>P2 服务端执行</td><td>2026-10-21</td><td>Python 执行从浏览器 Pyodide 切服务端（SSRF 安全代理 <code>sandbox_proxy.py</code>）</td></tr>
+    <tr><td>P3 图即引擎</td><td>2026-10-21</td><td><code>GraphRuntime</code> 直接解释执行节点图（无独立 AgentLoop）；全管线即一张图，模型调用是唯一 LLM 节点</td></tr>
+    <tr><td>P4 图表插件化</td><td>2026-10-21</td><td><code>diagram-render</code> manifest 声明资产懒加载 + 提示词贡献，关闭时零下载</td></tr>
+    <tr><td>P5 规则引擎</td><td>2026-10-21</td><td>第 23 项内置插件 <code>rule-engine</code> + <code>rules/</code> 内核：四类激活策略数据化（pinned 强制激活/条件触发/确定性路由 fail-closed/主动注入），关闭即旁路恒等</td></tr>
+    <tr><td>P6 市场 v1</td><td>2026-10-22</td><td>应用内上传导入（plugin.json 裸文件或 zip）：三类货架 + 模板/成品双形态 + 三重版本门禁 + 双注册表 + 原子账本装卸 + 重启恢复；不执行上传内容</td></tr>
+    <tr><td>P7 节点编辑器</td><td>2026-10-22</td><td>SVG 双线画布「编排 Beta」：画一张图 → 校验 → 导出（与市场同格式 zip）→ 安装 → GraphRuntime 执行；ref 约定三处对齐；安装走市场同一通道</td></tr>
+    <tr><td>图系统设计规范</td><td>2026-10-22</td><td><b>四源借鉴四轮深挖</b>（第一轮：流程图三大结构 + ISO 5807 全符号标准；Blender 几何节点官方 14 类节点树 / Fields 三态语义 / Group 接口 Subtype 全表 / Zone 机制 / 4.2 矩阵套件；ComfyUI 官方分类树 / 核心节点 I/O / 数据类型与槽位色 / 节点契约五件套 / UI-API 双格式。第二轮新增 Blender 材质（着色器）节点为第四源：5.2 LTS 九大类分类树 / Principled BSDF 全 I/O / socket 颜色形状语义 / Cycles-EEVEE 能力矩阵 / Closure 函数式注入；几何节点补版本演进 4.0→5.2 LTS / Bundles-Closures 范式 / 调试工具箱；ComfyUI 补执行引擎（PromptQueue/拓扑溶解/懒链接/指纹缓存）/ API 全表 / App Mode / Subgraph Blueprint / V3 schema 迁移；流程图补控制结构细分（while-do-while-for-switch-GCL）/ goto 论战 / N-S 盒图 / UML fork-join token 语义 / Mermaid-D2-DOT-PlantUML 文本化图格式 / Blockly JSON round-trip 先例）整合为 §5.14 十小节：设计思想总纲、原子级元素清单、嵌套图两层模型、图两态双向编译与动态同步、四源元素穷尽映射总表、完整教程资源；第五轮对 §5.14 全节 264 个案例元素逐一做本项目映射（含 12 项「表面无关实则有用」的深度挖掘映射 + 14 项明确不采纳及重审条件，定稿 Socket 七类型与三态插槽）；纯规范整理，未改运行时代码（规范与现状对齐，ComfyUI 双格式与 Blockly 为「图两态」的工业实证）</td></tr>
+  </table>
+  <h3>18.2 真实测试结论（LLM 通道 degraded 模式）</h3>
+  <ul>
+    <li><b>一致性</b>：旧架构（<code>engine.ask</code>）与新架构单 Agent（图执行）在同一问题集上检索命中（primary 3/3、chunks 8/8）、首要证据、置信度（均 55）、分步计划、记忆/自进化节点全部一致——<b>封装无折扣</b>；两条链路降级语义相同（Mock 标记一致）。</li>
+    <li><b>全链路</b>：真实子进程 14/14 通过（status → 25 单元 + 13 节点图 → ask → agent/step → 校验/导出/安装 → 货架/卸载 → 前端资产）。</li>
+    <li><b>额度实况</b>：百炼免费额度已耗尽（<code>AllocationQuota.FreeTierOnly</code>），主模型与辅助模型（置信度评估/记忆抽取/反思）全部 403，系统按设计降级 Mock 兜底、不崩主流程。恢复方式：百炼控制台关闭「仅使用免费额度」或充值；额度恢复后重跑 <code>scripts/e2e_real_consistency.py</code> 自动进入 live 模式（严格长度/关键词对比）。</li>
+  </ul>
+  <h3>18.3 后续路线</h3>
+  <ul>
+    <li><b>P8 线上市场（later，非 v1）</b>：去中心化 GitHub topic 安装（<code>add github:owner/repo</code>），生态扩展；当前 v1 市场为应用内上传导入，无联网、无中心注册表。</li>
+    <li><b>Tauri 打包</b>：出 Windows EXE，内嵌百炼通道 + vendor 前端（离线可用）。</li>
+    <li><b>按需开通</b>百炼控制台模型（qwen3-rerank / 视觉 / 文生图 / 语音 / 决策），开通后零改代码生效。</li>
+    <li><b>扩展 MCP</b>：接入 search server（Brave/Tavily）开通联网检索；filesystem server 扩展为本地知识目录常驻读取。</li>
+    <li>潜在拓展（建议）：离线文档预打包随分发、检索空自动联网兜底、freshness 增量重摄、多知识库 profile。<span class="note" style="display:inline">（答案引用溯源、成本计量面板已于 F5 / F7 落地，见第 17 章）</span></li>
+  </ul>
+
+  <h2 id="c19">19 · 附录 · 依赖与术语</h2>
+  <h3>A. 关键依赖（版本已锁定）</h3>
+  <pre><code>llama-index-core==0.14.25        LlamaIndex 分块/混合检索
+lancedb==0.40.0                  磁盘列存向量库
+qdrant-client==1.19.1            Mem0 记忆层向量库（本地模式）
+mem0ai==2.2.1                    长期记忆 / 用户画像
+sentence-transformers==6.1.0     本地 bge-reranker 精排
+mcp==1.30.0                      官方 MCP SDK（1.x 兼容 fetch server）
+trafilatura==2.3.1               网页正文抽取 + FocusedCrawler
+jieba==0.42.1                    中文分词（BM25 + TF-IDF）
+tenacity==9.1.3                  指数退避重试
+python-json-logger==4.0.0        JSON 日志格式化
+fastapi==0.128.2 / uvicorn==0.40.0 / typer==0.21.1
+pydantic-settings==2.16.0 / python-dotenv==1.2.4</code></pre>
+  <h3>B. 术语速查</h3>
+  <table>
+    <tr><th>术语</th><th>含义</th></tr>
+    <tr><td>RAG</td><td>检索增强生成：先检索资料库，再把证据喂给 LLM 生成</td></tr>
+    <tr><td>级联检索</td><td>main / supplement_a / supplement_b 三张表分角色检索后融合</td></tr>
+    <tr><td>RRF</td><td>Reciprocal Rank Fusion，向量与 BM25 结果排名融合</td></tr>
+    <tr><td>精排三级链</td><td>qwen3-rerank（云端）→ bge-reranker（本地）→ 向量分数（兜底）</td></tr>
+    <tr><td>MCP</td><td>Model Context Protocol，模型上下文协议，本项目接 3 个官方 server</td></tr>
+    <tr><td>双模型二审</td><td>出答案后由独立审阅通道对照证据审阅，给意见+修订版（A2A 轻量替代）</td></tr>
+    <tr><td>预设源双开关</td><td>PRESET_SOURCES_ENABLE（总闸）+ ENABLE_WEB_FETCH（抓取闸）</td></tr>
+    <tr><td>AskLimiter</td><td>ask 端点配额门：并发信号量 + 60s 滑窗速率</td></tr>
+  </table>
+
+  <h3>C. 审计 · 审查 · 整改纪要（浓缩合并）</h3>
+  <p>本说明书已合并原 <code>README.md</code>、<code>ARCHITECTURE.md</code> 与两轮审计报告（<code>AUDIT_REPORT_v1/v2</code>）、F1–F7 全面审查（<code>REVIEW_F1F7</code>）。以下为去重后的核心结论，细节请见 git 历史。</p>
+
+  <h4>C.1 质量整改里程碑</h4>
+  <p>0.2.0 单机原型经整改补齐 9 项缺口（已全绿验证）：① 零自动化测试（tests/ 18 文件 254 用例，零真实 LLM）② API 鉴权（Bearer + 常量时间比较）③ 记忆层切 Mem0 / qdrant 本地 ④ LLM 重试（tenacity）⑤ 结构化 JSON 日志 ⑥ 速率 / 并发配额（AskLimiter）⑦ 性能基准（benchmark.py）⑧ 数据备份（白名单 zip + Zip Slip 防护）⑨ 前端模块化（拆 8 文件）。第二轮精简：修复 P1 块数虚高 bug、evolution 静默吞异常改为分级处理；手写重试 / 日志格式化换 tenacity / python-json-logger；新增预装权威资料库；保持 <code>engine.ask()</code> 线性管道（CrewAI / Workflows 复评为负压缩）；<code>ingest.py</code> 拆为策略类包。</p>
+
+  <h4>C.2 审计溯源：v1 扩展机会 → F1–F7</h4>
+  <p>首轮审计列「扩展机会 Top 10」，其中 7 项已落地为 F1–F7：SSE 流式(F1)、引用溯源(F5)、记忆查看 / 删 / 导出(F4)、成本 / token 面板(F7)、命令面板(F2)、新手引导 + 错误人话(F6)、导出分享(F3)。余下审计项（渲染沙箱 iframe 隔离、前后端契约测试、发布四件套 + <code>/api/version</code>、本地 embedding 降额度依赖 M9、Tool Registry）列为 1.1 待办，不阻塞当前功能。</p>
+
+  <h4>C.3 模型通道切换（v3 → v4）与 2b 重建</h4>
+  <p><code>text-embedding-v3</code> 免费额耗尽，已切 <code>text-embedding-v4</code>（dim=1024 兼容，registry 驱动，<code>BAILIAN_EMBED_V4_MODEL</code> 可切）；对话通道保持 <code>qwen-plus</code>。维度实测 v3=v4=1024，无维度冲突。</p>
+  <div class="note"><b>⚠️ 2b 重建策略（1.1 待办）</b>：v3 / v4 同维 ≠ 可混用，旧 v3 向量仍存 LanceDB。策略①（省额度，已选）：增量切换，旧块保留、接受过渡期质量微降；策略②（质量最优，烧 v4）：先备份 <code>vector_lancedb/</code> 与 <code>mem0_qdrant/</code> 再删后重 ingest，10-27 前不建议。回滚靠模型名默认值 + vector 目录备份。</div>
+
+  <h4>C.4 全面审查（F1–F7）结论</h4>
+  <p>A 代码规范 / OOP / 去重 ✅（零新增依赖，复用 StreamingResponse / sqlite3 / DashScopeEmbedding 子类化）；B 前后端一致性 ✅（新增 4 端点字段与前端消费一一闭合）；C 业务-实现一致性 ✅（七项验收口径全部达成）；D 依赖审查 ✅（零新增 pip / 前端依赖）。唯一非阻塞项：统一日志字段消除测试环境结构化日志噪声。</p>
+
+  <h4>C.5 发布门禁基线（1.0 视角，历史参考）</h4>
+  <p>首轮 1.0 门禁 13 维多未达标：质量（契约 / smoke 缺）、安全（沙箱 / 供应链缺）、成本（无面板，已补 F7）、文档（四件套缺）、渲染（沙箱缺）、可观测（SLI / SLO 缺）、DX / Ops 等。这些随 F1–F7 部分收敛，但渲染沙箱、契约测试、发布四件套、可观测告警、SBOM 仍为 1.1+ 目标。</p>
+
+  <p style="color:var(--muted);margin-top:40px;border-top:1px solid var(--line);padding-top:16px">
+    本说明书整合了项目原 README.md、ARCHITECTURE.md、PLATFORM_MASTER_PLAN.md、PLUGIN_PLATFORM_DESIGN.md、PLUGIN_STANDARD_FORMAT.md、docs/HYBRID_GRAPH_SPEC.md、docs/UNIT_SCHEMA.md、BRAINSTORM_FUTURE_FEATURES.md 与历轮审计 / 审查报告（其余过程文档已按「只留说明书」原则精简删除，git 历史可溯）；事实已与 config.py / app.py / cli.py / requirements.txt / units/schema/unit.schema.json 核对（2026-10-21）。
+    如发现与代码不一致，以代码与 .env 为准。
+  </p>
+</main>
+</div>
+</body>
+</html>

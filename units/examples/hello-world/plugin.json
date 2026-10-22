@@ -1,0 +1,22 @@
+{
+  "id": "hello-world",
+  "type": "plugin",
+  "name": "Hello World 示例插件",
+  "version": "1.0.0",
+  "description": "最小可运行示例：演示 plugin.json 契约 + lifecycle + tools/system_prompt_sections 贡献点",
+  "author": "pypedia",
+  "license": "MIT",
+  "min_platform": "0.1.0",
+  "engines": { "python": ">=3.9" },
+  "dependencies": [],
+  "default_enabled": true,
+  "switchable": true,
+  "env_gate": "",
+  "apply": "immediate",
+  "contributions": {
+    "tools": ["plugin:list_tools"],
+    "system_prompt_sections": [
+      { "name": "hello-world:guide", "order": 90, "text": "你可以用 hello_world 工具向用户问好。" }
+    ]
+  }
+}

@@ -1,0 +1,510 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://pypedia.local/schema/unit.schema.json",
+  "title": "PyPedia Unit Manifest (plugin.json) v1",
+  "description": "万物皆插件 · 统一单元契约。type 取 plugin / agent / team，三者共享本 schema。节点图(node_graph)同时用于定义单 Agent 规则流与 Agent 团队编排。",
+  "type": "object",
+  "required": [
+    "id",
+    "type",
+    "name",
+    "version"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+      "description": "全局唯一 kebab-case，如 diagram-render / python-encyclopedia"
+    },
+    "type": {
+      "enum": [
+        "plugin",
+        "agent",
+        "team"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "semver"
+    },
+    "description": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string",
+      "default": "MIT"
+    },
+    "min_platform": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "平台最低版本，安装时做兼容门禁"
+    },
+    "engines": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "python": {
+          "type": "string",
+          "examples": [
+            ">=3.9"
+          ]
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "版本区间，如 >=1.0.0",
+            "default": "*"
+          }
+        }
+      }
+    },
+    "default_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "switchable": {
+      "type": "boolean",
+      "default": true,
+      "description": "false = 空壳入口(恒开, UI 置灰'入口预留')"
+    },
+    "env_gate": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$|^$",
+      "default": "",
+      "description": "部署态硬开关(实时读 settings)；空 = 无"
+    },
+    "apply": {
+      "enum": [
+        "immediate",
+        "restart"
+      ],
+      "default": "immediate",
+      "description": "开关变更生效方式"
+    },
+    "form": {
+      "enum": [
+        "template",
+        "instance"
+      ],
+      "default": "instance",
+      "description": "市场形态：template=模板/类(通用、待定制，开发侧)；instance=成品对象(已配置、开箱即用，仅需填环境项如 API key)。两者均可上架市场"
+    },
+    "contributions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "examples": [
+              "pypedia.plugins.x:register_tools"
+            ]
+          },
+          "description": "后端工具注册入口(module:attr)，供 GraphRuntime 图内模型调用消费"
+        },
+        "agent_tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "examples": [
+              "pypedia.agent.server_tools:memory_search"
+            ]
+          },
+          "description": "Agent 工具循环的裸可调用入口(module:attr)，逐个 importlib 解析为函数对象；声明顺序即装配顺序"
+        },
+        "system_prompt_sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "order"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "examples": [
+                  "diagram-render:guide"
+                ]
+              },
+              "order": {
+                "type": "integer"
+              },
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "when",
+              "then"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "规则唯一 id（kebab-case，命中后进 Decision.matched 供审计）"
+              },
+              "when": {
+                "type": "object",
+                "description": "触发条件（键：always/level_gte/level_lte/query_contains/query_matches/plugin_enabled/all/any/not；同对象多键为 AND）",
+                "examples": [
+                  {
+                    "level_gte": 4
+                  },
+                  {
+                    "all": [
+                      {
+                        "level_gte": 2
+                      },
+                      {
+                        "query_contains": [
+                          "报错"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "then": {
+                "type": "object",
+                "description": "动作：activate（激活 unit id 列表，进 active set）/ inject（注入命名提示词段落，隐含激活所属 unit）",
+                "examples": [
+                  {
+                    "activate": [
+                      "agent-memory"
+                    ]
+                  },
+                  {
+                    "inject": [
+                      "rule-engine:deep-mode"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "description": "规则引擎（P5）：能力激活规则数据；规则引擎开启时按求值结果做确定性路由（fail-closed：未进 active set 的能力不可见）"
+        },
+        "ui_panels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "slot",
+              "entry"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "slot": {
+                "type": "string",
+                "examples": [
+                  "render.hook",
+                  "sidebar.action"
+                ]
+              },
+              "entry": {
+                "type": "string"
+              },
+              "assets": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "lazy": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
+        "python_exec": {
+          "type": "string",
+          "description": "python_exec Seam 实现类(module:Class)；同类型仅 1 个生效"
+        },
+        "model_adapter": {
+          "type": "string",
+          "description": "模型适配 Seam 实现"
+        },
+        "storage": {
+          "type": "string",
+          "description": "存储 Seam 实现"
+        },
+        "schedule": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "cron",
+              "target"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "cron": {
+                "type": "string",
+                "examples": [
+                  "0 */6 * * *"
+                ]
+              },
+              "target": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "slash_command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "approval_policy": {
+          "type": "string"
+        },
+        "context_compactor": {
+          "type": "string"
+        }
+      }
+    },
+    "agent_def": {
+      "$ref": "#/definitions/agent_def",
+      "description": "type=agent 时必填"
+    },
+    "team_def": {
+      "$ref": "#/definitions/team_def",
+      "description": "type=team 时必填"
+    },
+    "node_graph": {
+      "$ref": "#/definitions/node_graph",
+      "description": "agent/team 的流程/编排图"
+    }
+  },
+  "definitions": {
+    "node_graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodes",
+        "edges"
+      ],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "plugin",
+                  "model-call",
+                  "judge",
+                  "input",
+                  "output",
+                  "entry",
+                  "exit",
+                  "llm",
+                  "process"
+                ],
+                "description": "插件节点 / 模型调用 / 判断分支 / 输入(entry) / 输出(exit) / 处理(process)。entry/exit/llm 为规范用语，运行时归一为 input/output/model-call"
+              },
+              "ref": {
+                "type": "string",
+                "description": "plugin/model-call/judge 指向的 unit id 或模型 id；judge 可填条件表达式 key"
+              },
+              "params": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "position": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "from",
+              "to"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "condition": {
+                "type": "string",
+                "description": "judge 节点的出边条件；input->... 等无则空"
+              }
+            }
+          }
+        }
+      }
+    },
+    "agent_def": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "persona": {
+          "type": "string",
+          "description": "人设 / SOUL.md 内容"
+        },
+        "home_profile": {
+          "type": "string",
+          "description": "独立 HOME profile 名"
+        },
+        "identity": {
+          "type": "string",
+          "description": "单 Agent 统一身份标识(如 ①)；团队中各成员不同 identity"
+        },
+        "system_prompt_sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "order"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "order": {
+                "type": "integer"
+              },
+              "text": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "该 Agent 注入系统提示词的段落（参考 contributions.system_prompt_sections）"
+        },
+        "flow": {
+          "$ref": "#/definitions/node_graph",
+          "description": "单 Agent 规则流(节点图)；也可放顶层 node_graph"
+        },
+        "tool_visibility": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "该 Agent 恒可见的工具/插件 id(always-on)"
+        }
+      }
+    },
+    "team_def": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "members",
+        "graph"
+      ],
+      "properties": {
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "引用的 agent id 列表"
+        },
+        "policy": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "角色/依赖/调度/跨 Agent 工具可见性策略"
+        },
+        "graph": {
+          "$ref": "#/definitions/node_graph",
+          "description": "团队编排图(节点图)"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "agent"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "agent_def"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "team"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "team_def"
+        ]
+      }
+    }
+  ]
+}

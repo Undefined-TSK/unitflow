@@ -1,0 +1,86 @@
+{
+  "_meta": "离线示例语料（Python 知识碎片）。真实部署时由官方文档/GitHub/离线书/论坛动态抓取补充。role: main=主源(官方主站), supplement_a=补充A(GitHub), supplement_b=补充B(离线书/论坛)。freshness: 0~1 新鲜度。",
+  "entries": [
+    {
+      "id": "off-listcomp",
+      "role": "main",
+      "title": "列表推导式 — Python 官方文档",
+      "url": "https://docs.python.org/zh-cn/3/tutorial/datastructures.html#list-comprehensions",
+      "tags": ["列表推导式", "list comprehension", "列表"],
+      "freshness": 1.0,
+      "body": "列表推导式提供了一种更简洁的方式来创建列表。基本形式为 [expr for item in iterable if cond]。它等价于一个 for 循环向空列表追加结果，但通常更快且更易读。避免过度嵌套，超过两层的推导式应改为普通循环。"
+    },
+    {
+      "id": "gh-listcomp",
+      "role": "supplement_a",
+      "title": "cpython/Lib/ast.py — 推导式编译实现",
+      "url": "https://github.com/python/cpython/blob/main/Lib/ast.py",
+      "tags": ["列表推导式", "list comprehension", "ast", "编译"],
+      "freshness": 0.9,
+      "body": "在 CPython 中，列表推导式被编译为 BUILD_LIST 与 FOR_ITER 字节码序列，拥有独立的作用域（Python 3 起推导式内的变量不会泄漏到外层）。这与 Python 2 的行为不同，是常见迁移坑。"
+    },
+    {
+      "id": "forum-listcomp",
+      "role": "supplement_b",
+      "title": "StackOverflow — 列表推导式 vs map/filter 性能",
+      "url": "https://stackoverflow.com/questions/list-comprehension",
+      "tags": ["列表推导式", "性能", "map", "filter"],
+      "freshness": 0.7,
+      "body": "经验上列表推导式在小数据量下略快于等价的 map+filter，但差异通常不显著；可读性优先。对极大集合考虑生成器表达式以节省内存。"
+    },
+    {
+      "id": "off-decorator",
+      "role": "main",
+      "title": "装饰器 — Python 官方文档",
+      "url": "https://docs.python.org/zh-cn/3/glossary.html#term-decorator",
+      "tags": ["装饰器", "decorator", "函数"],
+      "freshness": 1.0,
+      "body": "装饰器是可调用的包装器，语法 @decorator 等价于 func = decorator(func)。装饰器本身是一个接收函数并返回新函数（或可调用对象）的函数，常借助 functools.wraps 保留原函数的元信息。"
+    },
+    {
+      "id": "book-decorator",
+      "role": "supplement_b",
+      "title": "《流畅的Python》— 装饰器与闭包",
+      "url": "file:///books/fluent-python.epub",
+      "tags": ["装饰器", "decorator", "闭包", "closure"],
+      "freshness": 0.6,
+      "body": "装饰器本质是闭包的应用：外层函数捕获被装饰函数，内层函数在其外围作用域中查找变量。带参数的装饰器是三层嵌套——最外层接收参数，返回真正的装饰器。"
+    },
+    {
+      "id": "off-asyncio",
+      "role": "main",
+      "title": "asyncio — Python 官方文档",
+      "url": "https://docs.python.org/zh-cn/3/library/asyncio.html",
+      "tags": ["asyncio", "异步", "协程", "coroutine", "事件循环"],
+      "freshness": 1.0,
+      "body": "asyncio 是编写并发代码的库，使用 async/await 语法。核心概念：协程(coroutine)、事件循环(event loop)、任务(task)。await 会挂起协程让出控制权，直到等待的对象完成，从而实现单线程并发 I/O。"
+    },
+    {
+      "id": "gh-asyncio",
+      "role": "supplement_a",
+      "title": "cpython/Lib/asyncio/events.py — 事件循环实现",
+      "url": "https://github.com/python/cpython/blob/main/Lib/asyncio/events.py",
+      "tags": ["asyncio", "事件循环", "event loop", "selector"],
+      "freshness": 0.9,
+      "body": "默认事件循环在 Unix 上使用 selectors 模块（epoll/kqueue）监听 I/O 就绪。loop.run_until_complete 会运行直到主协程返回。注意阻塞调用（如 time.sleep）会卡住整个循环。"
+    },
+    {
+      "id": "off-fstring",
+      "role": "main",
+      "title": "f-字符串 — Python 官方文档",
+      "url": "https://docs.python.org/zh-cn/3/reference/lexical_analysis.html#f-strings",
+      "tags": ["f-string", "格式化", "字符串", "format"],
+      "freshness": 1.0,
+      "body": "f-字符串以 f 前缀，用 {expr} 在字符串内嵌入表达式，运行时求值。Python 3.12 起支持复用引号与多行，并可嵌套。比 % 与 str.format 更快且更直观。"
+    },
+    {
+      "id": "forum-fstring",
+      "role": "supplement_b",
+      "title": "StackOverflow — f-string 与 .format 取舍",
+      "url": "https://stackoverflow.com/questions/fstring",
+      "tags": ["f-string", "format", "格式化", "性能"],
+      "freshness": 0.7,
+      "body": "新代码优先用 f-string：可读性最好、性能略优。仅在格式模板需要延迟绑定或复用（如日志模板）时考虑 str.format。"
+    }
+  ]
+}

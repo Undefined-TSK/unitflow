@@ -1,0 +1,52 @@
+# 凭据
+.env
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+build/
+dist/
+*.spec
+
+# 数据与索引：项目静态数据（pypedia/data/*.json）入库；
+# 仅排除运行时生成的数据库/索引
+*.chroma/
+*.sqlite3
+
+# 打包产物
+*.exe
+*.msi
+
+# 测试与缓存（运行时产物，不入库）
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# 日志
+*.log
+
+# 运行时数据：profiles/ 含团队与单 Agent 的凭证、会话、记忆（五维隔离），禁止入库
+profiles/
+uploads/
+
+# 本地会话与工作区数据
+.codebuddy/
+
+# 系统与 IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# 备份与临时文件
+*.bak
+*.tmp
+*~

@@ -1,0 +1,88 @@
+{
+  "llm_channel": "degraded",
+  "questions": [
+    {
+      "q": "Python 的 GIL 是什么？对多线程编程有什么影响？",
+      "ok": true,
+      "checks": [
+        {
+          "check": "旧架构答案非空",
+          "ok": true,
+          "detail": "1072 字"
+        },
+        {
+          "check": "新架构答案非空",
+          "ok": true,
+          "detail": "159 字"
+        },
+        {
+          "check": "两架构均降级 Mock（标记一致）",
+          "ok": true,
+          "detail": "旧含 Mock 标记=True；新含 Mock 标记=True"
+        },
+        {
+          "check": "答案长度记录（降级模式不判定）",
+          "ok": true,
+          "detail": "旧 1072 字 / 新 159 字（Mock 兜底长度由各自 prompt 模板决定，非架构质量差异）"
+        },
+        {
+          "check": "检索命中一致",
+          "ok": true,
+          "detail": "旧 primary=3 chunks=8；新 primary=3 chunks=8"
+        },
+        {
+          "check": "首要证据同源（前 3 条有交集）",
+          "ok": true,
+          "detail": "旧前 3 ['asyncio — Python 官方文档', 'f-字符串 — Python 官方文档', '列表推导式 — Python 官方文档']；新前 3 ['asyncio — Python 官方文档', 'f-字符串 — Python 官方文档', '列表推导式 — Python 官方文档']；交集 3 条"
+        },
+        {
+          "check": "置信度均产出且差 ≤30",
+          "ok": true,
+          "detail": "旧 55 / 新 55（差 0.0）"
+        },
+        {
+          "check": "分步计划两架构一致",
+          "ok": true,
+          "detail": "旧 0 字 / 新 0 字"
+        },
+        {
+          "check": "新架构记忆/自进化节点完成",
+          "ok": true,
+          "detail": "memory_ok=True evo_ok=True"
+        }
+      ],
+      "old": {
+        "confidence": 55,
+        "primary_hits": 3,
+        "primary_titles": [
+          "asyncio — Python 官方文档",
+          "f-字符串 — Python 官方文档",
+          "列表推导式 — Python 官方文档"
+        ],
+        "chunks": 8,
+        "reasoning_plan": "",
+        "compressed": false,
+        "review": "skipped",
+        "latency_s": 18.6
+      },
+      "new": {
+        "confidence": 55,
+        "primary_hits": 3,
+        "primary_titles": [
+          "asyncio — Python 官方文档",
+          "f-字符串 — Python 官方文档",
+          "列表推导式 — Python 官方文档"
+        ],
+        "chunks": 8,
+        "reasoning_plan": "",
+        "compressed": false,
+        "review": null,
+        "needs_review": false,
+        "memory_ok": true,
+        "evo_ok": true,
+        "latency_s": 1.8
+      }
+    }
+  ],
+  "all_ok": true
+}

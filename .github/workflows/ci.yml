@@ -1,0 +1,29 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # 完整依赖（含 llama-index / lancedb 等重包；CI 只跑测试不需要 Node/MCP server，
+      # conftest 会把 MCPManager 打桩掉）。pytest 版本以 requirements 锁定为准，
+      # 不再尾部追加 unpinned 包（避免覆盖锁定版本）；`-m "not network"` 由
+      # pytest.ini addopts 统一生效，不在 CI 命令重复声明。
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r pypedia/requirements.txt
+
+      - name: Run tests (zero real LLM calls)
+        run: pytest -v

@@ -1,0 +1,61 @@
+{
+  "id": "python-encyclopedia",
+  "type": "agent",
+  "name": "PyPedia 百科助手（单 Agent 成品）",
+  "version": "1.0.0",
+  "description": "把整个 PyPedia 引擎封装成「图即引擎」的单 Agent 成品对象：入口→截断→级联检索→长上下文压缩→MCP 分步→构造提示词→生成(LLM)→置信度→二审分支→记忆→自进化→出口。所有能力皆节点/工具，零丢失、可编辑、可上架。",
+  "author": "pypedia",
+  "license": "MIT",
+  "min_platform": "0.1.0",
+  "engines": { "python": ">=3.9" },
+  "dependencies": [
+    { "id": "sandbox", "version": ">=1.0.0" },
+    { "id": "review", "version": ">=1.0.0" }
+  ],
+  "default_enabled": true,
+  "switchable": true,
+  "env_gate": "",
+  "apply": "immediate",
+  "form": "instance",
+  "contributions": {
+    "tools": ["encyclopedia:list_tools"],
+    "system_prompt_sections": [
+      { "name": "python-encyclopedia:role", "order": 10, "text": "你是 PyPedia，专业的 Python 百科助手：基于检索证据回答，代码用 ```python 块，必要时附 mermaid/表格。" }
+    ]
+  },
+  "agent_def": {
+    "identity": "①"
+  },
+  "node_graph": {
+    "nodes": [
+      { "id": "e", "type": "entry" },
+      { "id": "t", "type": "process", "params": { "expr": "{'query': payload['query'][:2000], 'level': payload.get('level', 3)}" } },
+      { "id": "r", "type": "plugin", "ref": "python-encyclopedia", "params": { "method": "retrieve" } },
+      { "id": "c", "type": "plugin", "ref": "python-encyclopedia", "params": { "method": "compress" } },
+      { "id": "p", "type": "plugin", "ref": "python-encyclopedia", "params": { "method": "reason" } },
+      { "id": "b", "type": "plugin", "ref": "python-encyclopedia", "params": { "method": "build_prompt" } },
+      { "id": "g", "type": "model-call", "params": { "identity": "①" } },
+      { "id": "k", "type": "plugin", "ref": "python-encyclopedia", "params": { "method": "confidence" } },
+      { "id": "j", "type": "judge" },
+      { "id": "v", "type": "plugin", "ref": "python-encyclopedia", "params": { "method": "review" } },
+      { "id": "m", "type": "plugin", "ref": "python-encyclopedia", "params": { "method": "remember" } },
+      { "id": "o", "type": "plugin", "ref": "python-encyclopedia", "params": { "method": "evolve" } },
+      { "id": "x", "type": "exit" }
+    ],
+    "edges": [
+      { "from": "e", "to": "t" },
+      { "from": "t", "to": "r" },
+      { "from": "r", "to": "c" },
+      { "from": "c", "to": "p" },
+      { "from": "p", "to": "b" },
+      { "from": "b", "to": "g" },
+      { "from": "g", "to": "k" },
+      { "from": "k", "to": "j" },
+      { "from": "j", "to": "v", "condition": "(data.get('k') or {}).get('needs_review', False)" },
+      { "from": "j", "to": "m", "condition": "" },
+      { "from": "v", "to": "m" },
+      { "from": "m", "to": "o" },
+      { "from": "o", "to": "x" }
+    ]
+  }
+}
